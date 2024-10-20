@@ -8,9 +8,11 @@ import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 
 
+class BluetoothHelper(private val context: Context) {
+    val bluetoothAvailable = context.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)
+    val bluetoothLEAvailable = context.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
+}
 
-val bluetoothAvailable = requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)
-val bluetoothLEAvailable = requireContext().packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)
 
 
 //val bluetoothManager = ContextCompat.getSystemService(this,Context.BLUETOOTH_SERVICE) as? BluetoothManager
