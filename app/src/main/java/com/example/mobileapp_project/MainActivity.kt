@@ -33,26 +33,25 @@ class MainActivity : ComponentActivity() {
     private lateinit var bluetoothManager: BluetoothManager
     private lateinit var receiver: BluetoothReceiver
     private lateinit var receiver2: Discoverability
-    private var discoveredDevices = mutableListOf<String>()  // Declare discovered devices list
+    private var discoveredDevices = mutableListOf<String>()
     private lateinit var bluetoothEnableLauncher: ActivityResultLauncher<Intent>
 
-    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Set up Bluetooth
-        bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        bluetoothAdapter = bluetoothManager.adapter
+        // Set up Bluetooth Adapter depending on Android version
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+            bluetoothAdapter = bluetoothManager.adapter
+        } else {
+            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        }
+
         receiver = BluetoothReceiver()
         receiver2 = Discoverability()
 
-        // Req perm if necessary
-        val requiredPermissions = arrayOf(
-            Manifest.permission.BLUETOOTH_SCAN,
-            Manifest.permission.BLUETOOTH_CONNECT,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-
+        // Request permissions if necessary
+        val requiredPermissions = getRequiredPermissions()
         if (!requiredPermissions.all {
                 ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
             }) {
@@ -70,38 +69,60 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Set Compose content
         setContent {
             MobileAppprojectTheme {
                 MainScreen(
-                    bluetoothAdapter = bluetoothAdapter,
                     onBluetoothToggle = { enableDisableBluetooth() },
                     onDiscoverDevices = { discoverDevices() },
                     onGetPairedDevices = { getPairedDevices() },
                     onDiscoverability = { discoverability() },
-                    discoveredDevices = discoveredDevices  // Pass discovered devices to UI
+                    discoveredDevices = discoveredDevices
                 )
             }
         }
     }
 
-    // Bluetooth device discovery logic
-    @RequiresApi(Build.VERSION_CODES.S)
+    // Function to determine permissions required based on Android version
+    private fun getRequiredPermissions(): Array<String> {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            arrayOf(
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        } else {
+            arrayOf(
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        }
+    }
+
     @SuppressLint("MissingPermission")
     private fun discoverDevices() {
-        // Check for permission before starting discovery
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ),
-                1
-            )
-            return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.ACCESS_FINE_LOCATION),
+                    1
+                )
+                return
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_FINE_LOCATION),
+                    1
+                )
+                return
+            }
         }
 
         if (bluetoothAdapter.isDiscovering) {
@@ -134,7 +155,11 @@ class MainActivity : ComponentActivity() {
                     Log.d("Bluetooth", "Discovery Finished")
                 }
                 BluetoothDevice.ACTION_FOUND -> {
-                    val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+                    } else {
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    }
                     device?.let {
                         val deviceName = device.name ?: "Unknown Device"
                         val deviceAddress = device.address
@@ -147,14 +172,21 @@ class MainActivity : ComponentActivity() {
     }
 
     @SuppressLint("MissingPermission")
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun enableDisableBluetooth() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
+        val permissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_GRANTED
+        }
+
+        if (!permissionGranted) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT)
+                } else {
+                    arrayOf(Manifest.permission.BLUETOOTH)
+                },
                 1
             )
             return
@@ -164,19 +196,27 @@ class MainActivity : ComponentActivity() {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
             bluetoothEnableLauncher.launch(enableBtIntent)
         } else {
-            //make sure that android later than 13 disconnects bluetooth manually.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 Toast.makeText(this, "Please disable Bluetooth manually from settings", Toast.LENGTH_LONG).show()
-                Log.d(
-                    "Bluetooth",
-                    "Bluetooth can't be turned off programmatically on Android 13+. Please disable Bluetooth manually."
-                )
+                Log.d("Bluetooth", "Bluetooth can't be turned off programmatically on Android 13+. Please disable manually.")
+            } else {
+                bluetoothAdapter.disable()
+                Log.d("Bluetooth", "Bluetooth disabled programmatically")
             }
         }
     }
 
     @SuppressLint("MissingPermission")
     private fun getPairedDevices() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                1
+            )
+            return
+        }
+
         val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
         pairedDevices?.forEach { device ->
             Log.d("PairedDevices", "${device.name} - ${device.address}")
@@ -184,46 +224,71 @@ class MainActivity : ComponentActivity() {
     }
 
     @SuppressLint("MissingPermission")
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun discoverability() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                1
+            )
+            return
+        }
+
         val discoverableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300)
         startActivity(discoverableIntent)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(receiver)
+    @Preview(showBackground = true)
+    @Composable
+    fun DefaultPreview() {
+        MobileAppprojectTheme {
+            MainScreen(
+                onBluetoothToggle = {},
+                onDiscoverDevices = {},
+                onGetPairedDevices = {},
+                onDiscoverability = {},
+                discoveredDevices = emptyList()
+            )
+        }
     }
 }
 
 @Composable
 fun MainScreen(
-    bluetoothAdapter: BluetoothAdapter,
     onBluetoothToggle: () -> Unit,
     onDiscoverDevices: () -> Unit,
     onGetPairedDevices: () -> Unit,
     onDiscoverability: () -> Unit,
-    discoveredDevices: List<String>  // List to display discovered devices
+    discoveredDevices: List<String>
 ) {
-    var bluetoothEnabled by remember { mutableStateOf(bluetoothAdapter.isEnabled) }
-
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(onClick = {
-            onBluetoothToggle()
-            bluetoothEnabled = !bluetoothEnabled
-        }) {
-            Text(if (bluetoothEnabled) "Disable Bluetooth" else "Enable Bluetooth")
+        Button(onClick = onBluetoothToggle) {
+            Text("Toggle Bluetooth")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { onDiscoverDevices() }) {
+        Button(onClick = onDiscoverDevices) {
             Text("Discover Devices")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = onGetPairedDevices) {
+            Text("Get Paired Devices")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = onDiscoverability) {
+            Text("Make Discoverable")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -232,32 +297,5 @@ fun MainScreen(
         discoveredDevices.forEach { device ->
             Text(device)
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = { onGetPairedDevices() }) {
-            Text("Get Paired Devices")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = { onDiscoverability() }) {
-            Text("Make Discoverable")
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    MobileAppprojectTheme {
-        MainScreen(
-            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter(),
-            onBluetoothToggle = {},
-            onDiscoverDevices = {},
-            onGetPairedDevices = {},
-            onDiscoverability = {},
-            discoveredDevices = emptyList()  // Provide a default empty list
-        )
     }
 }
