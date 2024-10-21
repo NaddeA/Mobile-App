@@ -10,8 +10,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -31,6 +34,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var receiver: BluetoothReceiver
     private lateinit var receiver2: Discoverability
     private var discoveredDevices = mutableListOf<String>()  // Declare discovered devices list
+    private lateinit var bluetoothEnableLauncher: ActivityResultLauncher<Intent>
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +46,7 @@ class MainActivity : ComponentActivity() {
         receiver = BluetoothReceiver()
         receiver2 = Discoverability()
 
-        // Request permissions if necessary
+        // Req perm if necessary
         val requiredPermissions = arrayOf(
             Manifest.permission.BLUETOOTH_SCAN,
             Manifest.permission.BLUETOOTH_CONNECT,
@@ -53,6 +57,17 @@ class MainActivity : ComponentActivity() {
                 ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
             }) {
             ActivityCompat.requestPermissions(this, requiredPermissions, 1)
+        }
+
+        // Register for Bluetooth enable result
+        bluetoothEnableLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                Log.d("Bluetooth", "Bluetooth enabled")
+            } else {
+                Log.d("Bluetooth", "Bluetooth enabling denied")
+            }
         }
 
         // Set Compose content
@@ -71,6 +86,7 @@ class MainActivity : ComponentActivity() {
     }
 
     // Bluetooth device discovery logic
+    @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("MissingPermission")
     private fun discoverDevices() {
         // Check for permission before starting discovery
@@ -79,7 +95,10 @@ class MainActivity : ComponentActivity() {
         ) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.ACCESS_FINE_LOCATION),
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ),
                 1
             )
             return
@@ -94,7 +113,13 @@ class MainActivity : ComponentActivity() {
             addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         }
         registerReceiver(discoverDeviceReceiver, filter)
-        bluetoothAdapter.startDiscovery()
+
+        val started = bluetoothAdapter.startDiscovery()
+        if (started) {
+            Log.d("Bluetooth", "Device discovery started successfully")
+        } else {
+            Log.d("Bluetooth", "Failed to start device discovery")
+        }
     }
 
     private val discoverDeviceReceiver = object : BroadcastReceiver() {
@@ -111,8 +136,10 @@ class MainActivity : ComponentActivity() {
                 BluetoothDevice.ACTION_FOUND -> {
                     val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                     device?.let {
-                        Log.d("Bluetooth", "Device found: ${device.name} - ${device.address}")
-                        discoveredDevices.add("${device.name ?: "Unknown"} - ${device.address}")
+                        val deviceName = device.name ?: "Unknown Device"
+                        val deviceAddress = device.address
+                        Log.d("Bluetooth", "Device found: $deviceName - $deviceAddress")
+                        discoveredDevices.add("$deviceName - $deviceAddress")
                     }
                 }
             }
@@ -122,26 +149,28 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("MissingPermission")
     @RequiresApi(Build.VERSION_CODES.S)
     private fun enableDisableBluetooth() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.BLUETOOTH_CONNECT), 1)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                1
+            )
             return
         }
 
         if (!bluetoothAdapter.isEnabled) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            startActivityForResult(enableBtIntent, 1)
+            bluetoothEnableLauncher.launch(enableBtIntent)
         } else {
-            bluetoothAdapter.disable()
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == 1) {
-            if (resultCode == RESULT_OK) {
-                Log.d("Bluetooth", "Bluetooth enabled")
-            } else {
-                Log.d("Bluetooth", "Bluetooth enabling denied")
+            //make sure that android later than 13 disconnects bluetooth manually.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Toast.makeText(this, "Please disable Bluetooth manually from settings", Toast.LENGTH_LONG).show()
+                Log.d(
+                    "Bluetooth",
+                    "Bluetooth can't be turned off programmatically on Android 13+. Please disable Bluetooth manually."
+                )
             }
         }
     }
