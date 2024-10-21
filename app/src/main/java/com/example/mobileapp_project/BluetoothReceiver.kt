@@ -8,9 +8,9 @@ import android.util.Log
 class BluetoothReceiver : BroadcastReceiver(){
     override fun onReceive(context: Context?, intent: Intent?) {
         val action = intent?.action
-        if(action==BluetoothAdapter.ACTION_STATE_CHANGED){
-            when(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,BluetoothAdapter.ERROR)){
-                BluetoothAdapter.STATE_OFF->{
+        if(action==BluetoothAdapter.ACTION_SCAN_MODE_CHANGED){
+            when(intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE,BluetoothAdapter.ERROR)){
+                BluetoothAdapter.SCAN_MODE_CONNECTABLE->{
                     Log.d("message1","Bluetooth off")
                 }
                 BluetoothAdapter.STATE_TURNING_OFF->{

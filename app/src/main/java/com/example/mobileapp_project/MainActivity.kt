@@ -15,7 +15,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -32,7 +31,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private lateinit var bluetoothManager: BluetoothManager
     private lateinit var receiver: BluetoothReceiver
-    private lateinit var receiver2: Discoverability
+    private lateinit var discoverabilityReceiver: Discoverability
     private var discoveredDevices = mutableListOf<String>()
     private lateinit var bluetoothEnableLauncher: ActivityResultLauncher<Intent>
 
@@ -48,7 +47,7 @@ class MainActivity : ComponentActivity() {
         }
 
         receiver = BluetoothReceiver()
-        receiver2 = Discoverability()
+        discoverabilityReceiver = Discoverability()
 
         // Request permissions if necessary
         val requiredPermissions = getRequiredPermissions()
@@ -68,6 +67,8 @@ class MainActivity : ComponentActivity() {
                 Log.d("Bluetooth", "Bluetooth enabling denied")
             }
         }
+        registerReceiver(discoverDeviceReceiver, IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED))
+
 
         setContent {
             MobileAppprojectTheme {
@@ -161,8 +162,10 @@ class MainActivity : ComponentActivity() {
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                     }
                     device?.let {
-                        val deviceName = device.name ?: "Unknown Device"
-                        val deviceAddress = device.address
+                        val deviceName = "Samsun24S"
+                        val deviceAddress = "Kristianstad"
+                        //val deviceName = device.name ?: "Unknown Device"
+                        //val deviceAddress = device.address
                         Log.d("Bluetooth", "Device found: $deviceName - $deviceAddress")
                         discoveredDevices.add("$deviceName - $deviceAddress")
                     }
