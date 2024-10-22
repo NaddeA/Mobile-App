@@ -1,6 +1,9 @@
 package com.example.mobileapp_project
 
 import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,38 +16,94 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import java.io.File
+import java.io.FileWriter
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
+    private var accelerometer: Sensor? = null
+    private var pressureSensor: Sensor? = null
+    private var writer: FileWriter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize SensorManager and Sensors
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE)
+
+        // Initialize FileWriter for logging data
+        try {
+            val logFile = File(getExternalFilesDir(null), "sensors_${System.currentTimeMillis()}.csv")
+            writer = FileWriter(logFile, true)
+            writer?.write("Timestamp,Sensor,ValueX,ValueY,ValueZ\n")
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
 
         setContent {
             SensorApp()
         }
     }
 
-    // get the list of sensorss
-    private fun getSensorInfo(): List<String> {
-        return try {
-            // Init the SensorManager
-            sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-            // Get the list of all available sensors, can be adjusted to few sensors
-            val deviceSensors = sensorManager.getSensorList(android.hardware.Sensor.TYPE_ALL)
-
-            if (deviceSensors.isNotEmpty()) {
-                deviceSensors.map { sensor -> "Sensor: ${sensor.name}" }
-            } else {
-                listOf("No sensors available on this device")
-            }
-        } catch (e: Exception) {
-            listOf("Error fetching sensors: ${e.message}")
+    // Register listeners when the activity is resumed
+    override fun onResume() {
+        super.onResume()
+        accelerometer?.let {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        pressureSensor?.let {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
         }
     }
 
+    // Unregister listeners when the activity is paused
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(this)
+        try {
+            writer?.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
 
+    // Handle sensor data
+    override fun onSensorChanged(event: SensorEvent?) {
+        event ?: return
+        val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+
+        when (event.sensor.type) {
+            Sensor.TYPE_ACCELEROMETER -> {
+                val x = event.values[0]
+                val y = event.values[1]
+                val z = event.values[2]
+                logData("ACCELEROMETER", timestamp, x, y, z)
+            }
+            Sensor.TYPE_PRESSURE -> {
+                val pressure = event.values[0]
+                logData("PRESSURE", timestamp, pressure, 0f, 0f)
+            }
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+    }
+
+    // Function to log data to the CSV file
+    private fun logData(sensorType: String, timestamp: String, valueX: Float, valueY: Float, valueZ: Float) {
+        try {
+            writer?.write("$timestamp,$sensorType,$valueX,$valueY,$valueZ\n")
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+
+    // UI Composables
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun SensorApp() {
@@ -65,14 +124,13 @@ class MainActivity : ComponentActivity() {
             ) {
 
                 Button(onClick = { // Fetch and update sensor data when button is clicked
-                        isSensorVisible = !isSensorVisible
+                    isSensorVisible = !isSensorVisible
 
-                    if (isSensorVisible){
+                    if (isSensorVisible) {
                         sensorData = getSensorInfo()
                     }
-
                 }) {
-                    //shows or hides sensors
+                    // Shows or hides sensors
                     Text(text = if (isSensorVisible) "Hide Sensors" else "Show Sensors")
                 }
 
@@ -93,6 +151,20 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    // Get the list of sensors
+    private fun getSensorInfo(): List<String> {
+        return try {
+            val deviceSensors = sensorManager.getSensorList(Sensor.TYPE_ALL)
+            if (deviceSensors.isNotEmpty()) {
+                deviceSensors.map { sensor -> "Sensor: ${sensor.name}" }
+            } else {
+                listOf("No sensors available on this device")
+            }
+        } catch (e: Exception) {
+            listOf("Error fetching sensors: ${e.message}")
         }
     }
 
