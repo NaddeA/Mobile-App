@@ -21,6 +21,7 @@ class Bluetooth(private val context: Context) {
     val bluetoothManager : BluetoothManager = context.getSystemService(BluetoothManager::class.java)
     val bluetoothAdapter : BluetoothAdapter? = bluetoothManager.getAdapter()
 
+
     // Checking if normal bluetooth is available ( Mostly for premative sensors and older phones), then Low battery bluetooth
     // Checking if it is enabled
     val bluetoothLEAvailable : Boolean
@@ -31,6 +32,7 @@ class Bluetooth(private val context: Context) {
         get() = bluetoothAdapter?.isEnabled() == true
 
     val bluetooth = Bluetooth(context)
+
 
     // Method to check if Bluetooth permission is granted
     private fun isBluetoothPermissionGranted(): Boolean {
@@ -47,17 +49,24 @@ class Bluetooth(private val context: Context) {
                 bluetoothAdminPermission == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun isBluetoothAvailable():Boolean {
+        if (!bluetoothAvailable || !bluetoothLEAvailable || !bluetoothEnabled || !isBluetoothPermissionGranted()) {
+            Log.e("BluetoothHelper", "Bluetooth not supported or enabled.")
+            return false
+        }
+        return true
+    }
 
     @SuppressLint("MissingPermission") // suppressing permission because I already checked for in the //isBluetoothPermissionGranted\\ Method
     fun connectToDevice(deviceName: String) {
-        if (!bluetoothAvailable || !bluetoothLEAvailable ||!bluetoothEnabled ) {
+        if (!isBluetoothAvailable() ) {
             Log.e("BluetoothHelper", "Bluetooth not supported or enabled.")
             return
         }
-        if (isBluetoothPermissionGranted()) {
-            val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
-        }
+        val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+
     }
+
 
 }
 
