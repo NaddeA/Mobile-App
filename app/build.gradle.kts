@@ -41,6 +41,16 @@ android {
 
 dependencies {
 
+    // Mockito core library for unit testing
+    testImplementation(libs.mockito.core)
+
+    // Optional: Mockito inline for mocking final classes and methods
+    testImplementation(libs.mockito.inline)
+
+    // Optional: Mockito Kotlin extensions for easier usage in Kotlin
+    testImplementation(libs.mockito.kotlin)
+
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

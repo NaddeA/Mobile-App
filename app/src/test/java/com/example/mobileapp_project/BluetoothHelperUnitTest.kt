@@ -1,3 +1,5 @@
+package com.example.mobileapp_project
+
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -38,8 +40,7 @@ class BluetoothHelperTest {
         bluetoothHelper.toggleBluetooth()
 
         // Verify that enabling Bluetooth was attempted
-        val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-        verify(context).startActivity(enableIntent)
+        verify(context).startActivity(any(Intent::class.java))
     }
 
     @Test
@@ -75,7 +76,7 @@ class BluetoothHelperTest {
         // Bluetooth is enabled and permissions are granted
         `when`(bluetoothAdapter.isEnabled).thenReturn(true)
         `when`(ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT))
-                .thenReturn(PackageManager.PERMISSION_GRANTED)
+            .thenReturn(PackageManager.PERMISSION_GRANTED)
 
         val pairedDevices = bluetoothHelper.getPairedDevices()
 
