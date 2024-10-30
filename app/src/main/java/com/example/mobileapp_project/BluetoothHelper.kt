@@ -64,6 +64,7 @@ class BluetoothHelper(private val context: Context) {
     // Discover devices
     @SuppressLint("MissingPermission")
     fun discoverDevices() {
+        //Check permissions first because of the suppressLint
         if (!isPermissionGranted()) {
             requestPermissions()
             return

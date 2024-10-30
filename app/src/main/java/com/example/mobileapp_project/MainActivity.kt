@@ -25,6 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.mobileapp_project.Bluetooth.BluetoothReceiver
+import com.example.mobileapp_project.Bluetooth.Discoverability
 import com.example.mobileapp_project.ui.theme.MobileAppprojectTheme
 
 class MainActivity : ComponentActivity() {
