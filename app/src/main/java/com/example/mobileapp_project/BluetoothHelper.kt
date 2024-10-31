@@ -17,7 +17,7 @@ import androidx.core.content.ContextCompat
 
 class BluetoothHelper(private val context: Context) {
     private val bluetoothAdapter: BluetoothAdapter? = getBluetoothAdapter()
-    private val discoveredDevices = mutableListOf<BluetoothDevice>()
+    val discoveredDevices = mutableListOf<BluetoothDevice>()
     private var bluetoothStateReceiver = BluetoothStateReceiver()
 
     init {

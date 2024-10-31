@@ -1,4 +1,4 @@
-package com.example.mobileapp_project.Bluetooth
+package com.example.mobileapp_project
 import android.bluetooth.BluetoothAdapter
 import android.content.BroadcastReceiver
 import android.content.Context
