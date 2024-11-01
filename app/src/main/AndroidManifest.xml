@@ -26,9 +26,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MobileAppproject"
         tools:targetApi="31">
-        <receiver android:name=".BluetoothReceiver" />
+        <receiver android:name=".Bluetooth.BluetoothReceiver" />
 
-        <receiver android:name=".Discoverability"
+        <receiver android:name=".Bluetooth.Discoverability"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.adapter.action.SCAN_MODE_CHANGED" />

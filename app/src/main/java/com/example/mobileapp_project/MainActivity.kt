@@ -2,6 +2,7 @@ package com.example.mobileapp_project
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothDevice
 import com.example.mobileapp_project.BluetoothHelper
 import android.content.*
 import android.content.pm.PackageManager
@@ -34,14 +35,16 @@ class MainActivity : ComponentActivity() {
 
     // Example usage of BluetoothHelper functions
 
-    val foundDevices: List<String> = BluetoothHelper.getDiscoveredDeviceNames(bluetoothHelper)
+    val discovered: List<BluetoothDevice> = bluetoothHelper.getDiscoveredDevices()
+    val paired: List<BluetoothDevice> = bluetoothHelper.getPairedDevices()
     setContent(){
         MainScreen(
             onBluetoothToggle = { toggleBluetooth() },
             onDiscoverDevices = { discoverDevices() },
             onDiscoverability = { enableDiscoverability() },
             onGetPairedDevices = { getPairedDevices() },
-            discoveredDevices = foundDevices
+            discoveredDevices = discovered,
+            pairedDevices = paired
         )
     }
 }
