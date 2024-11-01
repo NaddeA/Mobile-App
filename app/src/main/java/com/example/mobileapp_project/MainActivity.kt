@@ -1,41 +1,50 @@
 package com.example.mobileapp_project
 
-
+import android.Manifest
 import android.annotation.SuppressLint
+import com.example.mobileapp_project.BluetoothHelper
+import android.content.*
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.mobileapp_project.BluetoothHelper
+import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.example.mobileapp_project.ui.theme.MobileAppprojectTheme
 
 class MainActivity : ComponentActivity() {
+
+
     private lateinit var bluetoothHelper: BluetoothHelper
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    super.onCreate(savedInstanceState)
 
-        // Initialize BluetoothHelper with the current context
-        bluetoothHelper = BluetoothHelper(this)
+    // Initialize BluetoothHelper with the current context
+    bluetoothHelper = BluetoothHelper(this)
 
-        // Register the Bluetooth state receiver
-        bluetoothHelper.registerBluetoothReceiver()
+    // Register the Bluetooth state receiver
+    bluetoothHelper.registerBluetoothReceiver()
 
-        // Example usage of BluetoothHelper functions
+    // Example usage of BluetoothHelper functions
 
-        toggleBluetooth()
-        discoverDevices()
-        getPairedDevices()
-        enableDiscoverability()
-        setContent(){
-            MainScreen(
-                onBluetoothToggle = { toggleBluetooth() },
-                onDiscoverDevices = { discoverDevices() },
-                onDiscoverability = { enableDiscoverability() },
-                onGetPairedDevices = { getPairedDevices() },
-                discoveredDevices = discoveredDevices
-            )
-        }
+    val foundDevices: List<String> = BluetoothHelper.getDiscoveredDeviceNames(bluetoothHelper)
+    setContent(){
+        MainScreen(
+            onBluetoothToggle = { toggleBluetooth() },
+            onDiscoverDevices = { discoverDevices() },
+            onDiscoverability = { enableDiscoverability() },
+            onGetPairedDevices = { getPairedDevices() },
+            discoveredDevices = foundDevices
+        )
     }
+}
 
     private fun toggleBluetooth() {
         bluetoothHelper.toggleBluetooth()
@@ -63,3 +72,4 @@ class MainActivity : ComponentActivity() {
         bluetoothHelper.unregisterBluetoothReceiver()
     }
 }
+

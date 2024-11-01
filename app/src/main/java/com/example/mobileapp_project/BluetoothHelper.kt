@@ -15,9 +15,10 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
+@SuppressLint("MissingPermission")
 class BluetoothHelper(private val context: Context) {
     private val bluetoothAdapter: BluetoothAdapter? = getBluetoothAdapter()
-    val discoveredDevices = mutableListOf<BluetoothDevice>()
+    private val discoveredDevices = mutableListOf<BluetoothDevice>()
     private var bluetoothStateReceiver = BluetoothStateReceiver()
 
     init {
@@ -40,7 +41,7 @@ class BluetoothHelper(private val context: Context) {
     }
 
     // Enable or disable Bluetooth
-    @SuppressLint("MissingPermission")
+//    @SuppressLint("MissingPermission")
     fun toggleBluetooth() {
         if (!isPermissionGranted()) {
             requestPermissions()
@@ -62,7 +63,7 @@ class BluetoothHelper(private val context: Context) {
 
 
     // Discover devices
-    @SuppressLint("MissingPermission")
+//    @SuppressLint("MissingPermission")
     fun discoverDevices() {
         //Check permissions first because of the suppressLint
         if (!isPermissionGranted()) {
@@ -93,7 +94,7 @@ class BluetoothHelper(private val context: Context) {
     }
 
     // Get paired devices
-    @SuppressLint("MissingPermission")
+//    @SuppressLint("MissingPermission")
     fun getPairedDevices(): List<BluetoothDevice> {
         if (!isPermissionGranted()) {
             requestPermissions()
@@ -161,14 +162,14 @@ class BluetoothHelper(private val context: Context) {
 
     // Unregister Bluetooth state receiver
     fun unregisterBluetoothReceiver() {
-        bluetoothStateReceiver?.let {
+        bluetoothStateReceiver.let {
             context.unregisterReceiver(it)
         }
     }
 
     // BroadcastReceiver for device discovery
     private val deviceDiscoveryReceiver = object : BroadcastReceiver() {
-        @SuppressLint("MissingPermission")
+
         override fun onReceive(context: Context?, intent: Intent?) {
             val action = intent?.action ?: return
             when (action) {
@@ -202,6 +203,18 @@ class BluetoothHelper(private val context: Context) {
     // Get list of discovered devices
     fun getDiscoveredDevices(): List<BluetoothDevice> {
         return discoveredDevices
+    }
+
+
+    companion object {
+        fun getDiscoveredDeviceNames(bluetoothHelper: BluetoothHelper): List<String> { // need some rework incase permission not granted
+
+            if (!bluetoothHelper.isPermissionGranted()) {
+                bluetoothHelper.requestPermissions()
+
+            }
+            return bluetoothHelper.discoveredDevices.map { it.name ?: "Unknown Device" }
+        }
     }
     // Inner class to handle Bluetooth state changes
     private inner class BluetoothStateReceiver : BroadcastReceiver() {
