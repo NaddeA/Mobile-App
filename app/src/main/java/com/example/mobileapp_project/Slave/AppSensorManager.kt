@@ -1,4 +1,4 @@
-package com.example.mobileapp_project
+package com.example.mobileapp_project.Slave
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
