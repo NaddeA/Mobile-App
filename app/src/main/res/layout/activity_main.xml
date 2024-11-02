@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/relativeLayout"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="8dp">
 
+    <!-- TextView for displaying sensors in a simple text list -->
     <TextView
         android:id="@+id/sensorTextView"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="Sensor data will be shown here"
-        android:textSize="16sp" />
+        android:padding="8dp"
+        android:textSize="16sp"
+        android:textColor="@android:color/black" />
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/sensorTextView"
-        android:layout_marginTop="20dp"
-        android:text="TextView" />
 
-</RelativeLayout>
+    <!-- RecyclerView for displaying sensors in a detailed list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/sensorRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp" />
+</LinearLayout>
