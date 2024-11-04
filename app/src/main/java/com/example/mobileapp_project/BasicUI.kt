@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 sealed class Screen {
     object MainMenu: Screen()
@@ -40,13 +41,11 @@ fun AppScreen(BTH:BluetoothHelper) {
             )
             is Screen.BtDiscovered -> BtDiscoveredScreen (bluetoothHelper = BTH,
                 onNavigate = { selectedScreen -> currentScreen = selectedScreen },
-                onDeviceClick = { device -> BTH.connectToDevice(device) },
                 onDiscoverDevices = { BTH.discoverDevices() }
                 )
             is Screen.BtPaired -> BtPairedScreen (
                 onNavigate = { selectedScreen -> currentScreen = selectedScreen },
-                bluetoothHelper = BTH,
-                onDeviceClick = { device -> BTH.connectToDevice(device)})
+                bluetoothHelper = BTH)
         }
     }
 }
@@ -77,9 +76,9 @@ fun MainMenuScreen(onNavigate: (Screen) -> Unit,
 @Composable
 fun BtDiscoveredScreen(onNavigate: (Screen) -> Unit,
                        bluetoothHelper: BluetoothHelper,
-                       onDeviceClick: (BluetoothDevice) -> Unit,
                        onDiscoverDevices: () -> Unit) {
     val discoveredDevices = remember { mutableStateListOf<BluetoothDevice>() }
+    val coroutineScope = rememberCoroutineScope()
     // Effect to handle receiver registration and cleanup
     DisposableEffect(Unit) {
         val receiver = bluetoothHelper.createDeviceDiscoveryReceiver { device ->
@@ -107,7 +106,11 @@ fun BtDiscoveredScreen(onNavigate: (Screen) -> Unit,
             items(discoveredDevices) { device ->
                 BluetoothDeviceItem(
                     device = device,
-                    onDeviceClick = {onDeviceClick(device)}
+                    onDeviceClick = { device ->
+                        coroutineScope.launch {
+                            bluetoothHelper.connectToDevice(device)
+                        }
+                    }
 
                 )
 
@@ -134,11 +137,11 @@ fun BtDiscoveredScreen(onNavigate: (Screen) -> Unit,
 fun BtPairedScreen(
     bluetoothHelper: BluetoothHelper,
     onNavigate: (Screen) -> Unit,
-    onDeviceClick: (BluetoothDevice) -> Unit
+
 ) {
     // Fetch the list of paired devices from BluetoothHelper
     val pairedDevices = bluetoothHelper.getPairedDevices()
-
+    val coroutineScope = rememberCoroutineScope()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = "Paired Bluetooth Devices", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(8.dp))
@@ -147,7 +150,11 @@ fun BtPairedScreen(
             items(pairedDevices) { device ->
                 BluetoothDeviceItem(
                     device = device,
-                    onDeviceClick = { onDeviceClick(device) }
+                    onDeviceClick = { device ->
+                        coroutineScope.launch {
+                            bluetoothHelper.connectToDevice(device)
+                        }
+                    }
                 )
             }
         }
@@ -237,7 +244,7 @@ fun DeviceDiscovery(bluetoothHelper: BluetoothHelper) {
 @Composable
 fun BluetoothDeviceItem(
     device: BluetoothDevice,
-    onDeviceClick: (String) -> Unit
+    onDeviceClick: (BluetoothDevice) -> Unit
 ) {
     ListItem(
         headlineContent = {
@@ -254,7 +261,7 @@ fun BluetoothDeviceItem(
             )
         },
         modifier = Modifier
-            .clickable { onDeviceClick(device.address) }
+            .clickable { onDeviceClick(device) }
             .padding(4.dp)
     )
 }

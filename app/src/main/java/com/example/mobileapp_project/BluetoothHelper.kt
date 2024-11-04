@@ -15,6 +15,8 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.UUID
 
@@ -134,26 +136,36 @@ class BluetoothHelper(private val context: Context) {
         context.startActivity(discoverableIntent)
     }
 
-    fun connectToDevice(device: BluetoothDevice){
+    suspend fun connectToDevice(connectMe: BluetoothDevice){
         if (!isPermissionGranted()){
             requestPermissions()
             return
         }
         //this is the standard UUID (Universally Unique Identifier) for SSP (Serial Port Profile)
         val uuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+        withContext(Dispatchers.IO) {
+            val device = bluetoothAdapter?.getRemoteDevice(connectMe.address)
+            try {  val socket = device?.createRfcommSocketToServiceRecord(uuid)
+                bluetoothAdapter?.cancelDiscovery() // Cancel discovery to improve connection speed
+                socket?.connect() // Blocking call
+                // Connection succeeded, proceed with communication
+            } catch (e: IOException) {
+                Log.e("BluetoothHelper", "Connection to ${connectMe.name} failed", e)
+                // Handle the failure, potentially with retries or user feedback
+            }}
 
-        val bluetoothSocket : BluetoothSocket?
-
-        try {
-            bluetoothSocket = device.createRfcommSocketToServiceRecord(uuid)
-            bluetoothAdapter?.cancelDiscovery()
-            bluetoothSocket.connect()
-            Log.d("BluetoothHelper", "Connected to ${device.name}")
-        }
-        catch (e:IOException){
-            Log.e("BluetoothHelper" ,"Connection to ${device.name} Failed",e)
-            return
-        }
+//        val bluetoothSocket : BluetoothSocket?
+//
+//        try {
+//
+//            bluetoothAdapter?.cancelDiscovery()
+//            bluetoothSocket.connect()
+//            Log.d("BluetoothHelper", "Connected to ${device.name}")
+//        }
+//        catch (e:IOException){
+//            Log.e("BluetoothHelper" ,"Connection to ${device.name} Failed",e)
+//            return
+//        }
     }
 
 
