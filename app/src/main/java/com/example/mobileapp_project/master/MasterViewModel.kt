@@ -1,10 +1,8 @@
-package com.example.mobileapp_project.Master
-
-
+package com.example.mobileapp_project.master
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mobileapp_project.Bluetooth.BluetoothClient
+import com.example.mobileapp_project.bluetooth.BluetoothClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -29,14 +27,15 @@ class MasterViewModel(private val bluetoothClient: BluetoothClient) : ViewModel(
 
     fun sendCommand(command: String) {
         viewModelScope.launch {
-            bluetoothClient.sendCommand(command)
-            _receivedData.value = bluetoothClient.receiveResponse() ?: "No response"
+            if (bluetoothClient.sendCommand(command)) {
+                _receivedData.value = bluetoothClient.receiveResponse() ?: "No response"
+            } else {
+                _receivedData.value = "Failed to send command"
+            }
         }
     }
 
     fun disconnect() {
         bluetoothClient.closeConnection()
     }
-}
-{
 }

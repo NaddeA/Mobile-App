@@ -58,4 +58,15 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("androidx.compose.ui:ui:1.3.2")
+    implementation("androidx.compose.material3:material3:1.0.1")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.3.2")
+
+    // Lifecycle and ViewModel support
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.5.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
+
+    // Optional, for Compose UI testing
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.3.2")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.3.2")
 }

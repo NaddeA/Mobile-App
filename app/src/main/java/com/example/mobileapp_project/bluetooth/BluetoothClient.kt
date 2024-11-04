@@ -1,4 +1,4 @@
-package com.example.mobileapp_project.Bluetooth
+package com.example.mobileapp_project.bluetooth
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
@@ -12,28 +12,34 @@ class BluetoothClient(private val device: BluetoothDevice) {
     private val deviceUUID: UUID = UUID.fromString("your-uuid-here")
 
     @SuppressLint("MissingPermission")
-    fun connectToSlave() {
-        try {
+    fun connectToSlave(): Boolean {
+        return try {
             bluetoothSocket = device.createRfcommSocketToServiceRecord(deviceUUID)
             bluetoothSocket?.connect()
             Log.d("BluetoothClient", "Connected to slave")
+            true
         } catch (e: IOException) {
             Log.e("BluetoothClient", "Connection failed", e)
             closeConnection()
+            false
         }
     }
 
-    fun sendCommand(command: String) {
-        try {
+    fun sendCommand(command: String): Boolean {
+        return try {
             bluetoothSocket?.outputStream?.write(command.toByteArray())
+            Log.d("BluetoothClient", "Sent command: $command")
+            true
         } catch (e: IOException) {
             Log.e("BluetoothClient", "Failed to send command", e)
+            Log.e("BluetoothClient", "Failed to send command", e)
+            false
         }
     }
 
     fun receiveResponse(): String? {
-        val buffer = ByteArray(1024)
         return try {
+            val buffer = ByteArray(1024)
             val bytes = bluetoothSocket?.inputStream?.read(buffer) ?: 0
             String(buffer, 0, bytes)
         } catch (e: IOException) {

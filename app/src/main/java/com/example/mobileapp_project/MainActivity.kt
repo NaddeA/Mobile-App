@@ -1,101 +1,194 @@
 package com.example.mobileapp_project
 
+import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.mobileapp_project.Slave.AppSensorManager
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mobileapp_project.master.MasterViewModel
+import com.example.mobileapp_project.slave.SlaveViewModel
+import java.util.*
 
 class MainActivity : ComponentActivity() {
-    private lateinit var appSensorManager: AppSensorManager
-    private var sensorDataList = mutableStateListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestPermissions() // Request necessary permissions at the start
 
-        // Request WRITE_EXTERNAL_STORAGE permission if not granted
-        if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
-        }
-
-        // Initialize AppSensorManager with data collection callback
-        appSensorManager = AppSensorManager(
-            context = this,
-            onSensorDataCollected = { sensorType, x, y, z ->
-                val data = "$sensorType: X=$x, Y=$y, Z=$z"
-                sensorDataList.add(0, data)
-                if (sensorDataList.size > 100) sensorDataList.removeLast() // Limit displayed items
-            }
-        )
-
-        // Set content for the UI
         setContent {
             SensorApp()
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        appSensorManager.startDataCollection() // Start collecting data when activity resumes
-    }
-
-    override fun onPause() {
-        super.onPause()
-        appSensorManager.stopDataCollection() // Stop collecting data when activity pauses
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun SensorApp() {
-        Scaffold(
-            topBar = { TopAppBar(title = { Text("Sensor Info") }) }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Start and Stop buttons for manual control
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Button(onClick = { appSensorManager.startDataCollection() }) {
-                        Text("Start Collection")
-                    }
-                    Button(onClick = { appSensorManager.stopDataCollection() }) {
-                        Text("Stop Collection")
-                    }
-                }
+        var mode by remember { mutableStateOf<Mode?>(null) }
 
-                Spacer(modifier = Modifier.height(16.dp))
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            when (mode) {
+                null -> ModeSelectionScreen(onModeSelected = { selectedMode ->
+                    mode = selectedMode
+                })
 
-                // Display sensor data
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(sensorDataList) { sensor ->
-                        Text(text = sensor, style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
+                Mode.Master -> MasterScreen()
+                Mode.Slave -> SlaveScreen()
             }
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults) // Call super to resolve the warning
-
-        if (requestCode == 1 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            // Permission granted, proceed with file operations if needed
-        } else {
-            // Permission denied, handle accordingly (e.g., show a message)
+    private fun requestPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // Check for API level 23+
+            val permissions = mutableListOf<String>()
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // Check for Android 12+ specific permissions
+                if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+                }
+                if (checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.BLUETOOTH_SCAN)
+                }
+            } else { // Android 11 and below permissions
+                if (checkSelfPermission(Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.BLUETOOTH)
+                }
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+            }
+            if (permissions.isNotEmpty()) {
+                requestPermissions(permissions.toTypedArray(), 1)
+            }
         }
     }
+}
+
+@Composable
+fun ModeSelectionScreen(onModeSelected: (Mode) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Select Mode", style = MaterialTheme.typography.headlineMedium)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = { onModeSelected(Mode.Master) },
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
+        ) {
+            Text("Master Mode")
+        }
+
+        Button(
+            onClick = { onModeSelected(Mode.Slave) },
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
+        ) {
+            Text("Slave Mode")
+        }
+    }
+}
+
+@Composable
+fun MasterScreen() {
+    val masterViewModel: MasterViewModel = viewModel()
+    val connectionStatus by masterViewModel.connectionStatus.collectAsState()
+    val receivedData by masterViewModel.receivedData.collectAsState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Connection Status: $connectionStatus")
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { masterViewModel.connectToSlave() }) {
+            Text("Connect to Slave")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { masterViewModel.sendCommand("[a,1000]") }) {
+            Text("Set Sampling Rate (1000 Hz)")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { masterViewModel.sendCommand("[d]") }) {
+            Text("Start Sampling")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { masterViewModel.sendCommand("[e]") }) {
+            Text("Send Sampled Data")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Received Data: $receivedData")
+    }
+}
+
+@Composable
+fun SlaveScreen() {
+    val slaveViewModel: SlaveViewModel = viewModel()
+    val sensorDataList = slaveViewModel.sensorDataList
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Sensor Data:")
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Column {
+            sensorDataList.forEach { data ->
+                Text(text = data, style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { slaveViewModel.startDataCollection() }) {
+            Text("Start Data Collection")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = {
+            // Assuming the `sendDataToMaster` needs a BluetoothSocket which must be initialized
+            // Replace `socket` with actual socket if available
+            slaveViewModel.sendDataToMaster()
+        }) {
+            Text("Send Data to Master")
+        }
+    }
+}
+
+enum class Mode {
+    Master, Slave
 }
