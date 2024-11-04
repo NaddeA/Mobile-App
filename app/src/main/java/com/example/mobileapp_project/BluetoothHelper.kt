@@ -1,19 +1,22 @@
 package com.example.mobileapp_project
 
 import android.app.Activity
-
-
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothSocket
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import java.io.IOException
+import java.util.UUID
 
 @SuppressLint("MissingPermission")
 class BluetoothHelper(private val context: Context) {
@@ -93,6 +96,25 @@ class BluetoothHelper(private val context: Context) {
         }
     }
 
+
+    private val handler = Handler(Looper.getMainLooper())
+    private val discoveryRunnable = object : Runnable {
+        override fun run() {
+            discoverDevices()
+            handler.postDelayed(this, 10000) // Re-run discovery every 10 seconds
+        }
+    }
+
+    fun startPeriodicDiscovery() {
+        handler.post(discoveryRunnable)
+    }
+
+    fun stopPeriodicDiscovery() {
+        handler.removeCallbacks(discoveryRunnable)
+        bluetoothAdapter?.cancelDiscovery()
+    }
+
+
     // Get paired devices
 //    @SuppressLint("MissingPermission")
     fun getPairedDevices(): List<BluetoothDevice> {
@@ -111,6 +133,29 @@ class BluetoothHelper(private val context: Context) {
         }
         context.startActivity(discoverableIntent)
     }
+
+    fun connectToDevice(device: BluetoothDevice){
+        if (!isPermissionGranted()){
+            requestPermissions()
+            return
+        }
+        //this is the standard UUID (Universally Unique Identifier) for SSP (Serial Port Profile)
+        val uuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+
+        val bluetoothSocket : BluetoothSocket?
+
+        try {
+            bluetoothSocket = device.createRfcommSocketToServiceRecord(uuid)
+            bluetoothAdapter?.cancelDiscovery()
+            bluetoothSocket.connect()
+            Log.d("BluetoothHelper", "Connected to ${device.name}")
+        }
+        catch (e:IOException){
+            Log.e("BluetoothHelper" ,"Connection to ${device.name} Failed",e)
+            return
+        }
+    }
+
 
     // Helper to check Bluetooth permissions
     private fun isPermissionGranted(): Boolean {
@@ -195,9 +240,29 @@ class BluetoothHelper(private val context: Context) {
         }
     }
 
+
+    fun createDeviceDiscoveryReceiver(onDeviceFound: (BluetoothDevice) -> Unit): BroadcastReceiver {
+        val deviceDiscoveryReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val action = intent?.action
+                if (action == BluetoothDevice.ACTION_FOUND) {
+                    val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    device?.let {
+                        onDeviceFound(it)
+                    }
+                }
+            }
+        }
+        // Register the receiver with the necessary filter
+        val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        context.registerReceiver(deviceDiscoveryReceiver, filter)
+
+        return deviceDiscoveryReceiver
+    }
+
     // Unregister the Bluetooth state receiver when done
-    fun cleanup() {
-        context.unregisterReceiver(bluetoothStateReceiver)
+    fun unregisterReceiver(receiver: BroadcastReceiver) {
+        context.unregisterReceiver(receiver)
     }
 
     // Get list of discovered devices
@@ -205,6 +270,16 @@ class BluetoothHelper(private val context: Context) {
         return discoveredDevices
     }
 
+
+    fun isBluetoothOn():Boolean{
+        if (!isPermissionGranted()) {
+            requestPermissions()
+        }
+        bluetoothAdapter?.let {  adapter ->
+            return adapter.isEnabled
+        }
+        return false
+    }
 
     companion object {
         fun getDiscoveredDeviceNames(bluetoothHelper: BluetoothHelper): List<String> { // need some rework incase permission not granted

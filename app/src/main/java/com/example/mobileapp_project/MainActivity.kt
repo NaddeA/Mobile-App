@@ -1,25 +1,12 @@
 package com.example.mobileapp_project
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
-import com.example.mobileapp_project.BluetoothHelper
-import android.content.*
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.ActivityResultLauncher
-import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import com.example.mobileapp_project.ui.theme.MobileAppprojectTheme
-
 class MainActivity : ComponentActivity() {
 
 
@@ -33,19 +20,13 @@ class MainActivity : ComponentActivity() {
     // Register the Bluetooth state receiver
     bluetoothHelper.registerBluetoothReceiver()
 
-    // Example usage of BluetoothHelper functions
-
-    val discovered: List<BluetoothDevice> = bluetoothHelper.getDiscoveredDevices()
-    val paired: List<BluetoothDevice> = bluetoothHelper.getPairedDevices()
     setContent(){
-        MainScreen(
-            onBluetoothToggle = { toggleBluetooth() },
-            onDiscoverDevices = { discoverDevices() },
-            onDiscoverability = { enableDiscoverability() },
-            onGetPairedDevices = { getPairedDevices() },
-            discoveredDevices = discovered,
-            pairedDevices = paired
-        )
+        val discovered: List<BluetoothDevice> = bluetoothHelper.getDiscoveredDevices()
+        val paired: List<BluetoothDevice> = bluetoothHelper.getPairedDevices()
+        var currentScreen by remember { mutableStateOf<Screen>(Screen.MainMenu) }
+//
+        AppScreen(bluetoothHelper)
+
     }
 }
 
