@@ -4,10 +4,11 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,8 +21,8 @@ class MainActivity : AppCompatActivity() {
 
         // Handle if SensorManager is null
         if (sensorManager == null) {
-            val textView = findViewById<TextView>(R.id.sensorTextView)
-            textView?.text = "SensorManager is not available on this device."
+            // Om SensorManager inte är tillgänglig, visa ett felmeddelande i en dialog eller Toast
+            Toast.makeText(this, "SensorManager is not available on this device.", Toast.LENGTH_LONG).show()
             return
         }
 
@@ -30,18 +31,9 @@ class MainActivity : AppCompatActivity() {
 
         // Check if sensors are available
         if (sensorList.isNullOrEmpty()) {
-            val textView = findViewById<TextView>(R.id.sensorTextView)
-            textView?.text = "No sensors available on this device."
+            Toast.makeText(this, "No sensors available on this device.", Toast.LENGTH_LONG).show()
             return
         }
-
-        // Display sensors in TextView as a simple list
-        val sensorText = StringBuilder("Available Sensors:\n")
-        for (sensor in sensorList) {
-            sensorText.append("${sensor.name}\n")
-        }
-        val textView = findViewById<TextView>(R.id.sensorTextView)
-        textView?.text = sensorText.toString()
 
         // Display sensors in RecyclerView with icons and descriptions
         val sensorsForRecyclerView = sensorList.map { deviceSensor ->
@@ -58,3 +50,5 @@ class MainActivity : AppCompatActivity() {
         sensorRecyclerView.adapter = SensorAdapter(sensorsForRecyclerView)
     }
 }
+
+
