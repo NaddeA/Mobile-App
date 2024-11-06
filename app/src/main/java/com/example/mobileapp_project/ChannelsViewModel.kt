@@ -13,7 +13,7 @@ class ChannelsViewModel(
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
-    // StateFlow to manage the list of channels for the UI to observe
+    //  StateFlow to manage the list of channels for the UI to observe
     private val _channels = MutableStateFlow<List<Channel>>(emptyList())
     val channels: StateFlow<List<Channel>> = _channels
 

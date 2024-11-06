@@ -6,7 +6,7 @@ import androidx.room.*
 @Dao
 interface ChannelDao {
 
-    // Inserts a new channel into the database, replacing any existing entry with the same ID
+    //  Inserts a new channel into the database, replacing any existing entry with the same ID
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(channel: Channel)
 

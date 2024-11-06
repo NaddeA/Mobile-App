@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-// Defines a Room database that holds Channel entities, with the current database schema at version 3
+//  Defines a Room database that holds Channel entities, with the current database schema at version 3
 @Database(
     entities = [Channel::class],  // Specifies the data entity classes managed by this database
     version = 3  // Database schema version; incremented to apply new schema changes

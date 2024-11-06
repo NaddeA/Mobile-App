@@ -13,7 +13,7 @@ class PreferencesManager(context: Context) {
     // SharedPreferences instance for reading data
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE)
-    // Editor instance for writing data
+    //  Editor instance for writing data
     private val editor: SharedPreferences.Editor = sharedPreferences.edit()
 
     // Save whether the setup has been completed (boolean value)
