@@ -20,4 +20,12 @@
         android:layout_marginTop="16dp"
         android:textSize="16sp"
         android:text="Sensors will be listed here..." />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/sensorRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:padding="8dp" />
+
 </LinearLayout>

@@ -72,4 +72,7 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
 
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.5.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+
 }
