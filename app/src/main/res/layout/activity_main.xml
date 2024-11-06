@@ -9,14 +9,8 @@
         android:orientation="vertical"
         android:padding="8dp">
 
-        <!-- TextView for displaying a simple list of sensors -->
-        <TextView
-            android:id="@+id/sensorTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="16sp"
-            android:textColor="@android:color/black" />
+
+
 
         <!-- RecyclerView for displaying sensors in a detailed list -->
         <androidx.recyclerview.widget.RecyclerView

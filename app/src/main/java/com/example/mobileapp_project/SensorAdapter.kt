@@ -7,6 +7,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
+
+
 class SensorAdapter(private val sensorList: List<SensorItem>) : RecyclerView.Adapter<SensorAdapter.SensorViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SensorViewHolder {

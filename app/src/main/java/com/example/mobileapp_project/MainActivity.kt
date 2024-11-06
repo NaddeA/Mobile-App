@@ -1,85 +1,60 @@
-package com.example.channels_work
+package com.example.mobileapp_project
 
+import android.hardware.Sensor
+import android.hardware.SensorManager
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
-// import androidx.lifecycle.viewmodel.compose.viewModel
+import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
-class MainActivity : ComponentActivity() {
+
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-        // Initialize database and preferences manager
-        val database = ChannelsDatabase.getDatabase(applicationContext)
-        val preferencesManager = PreferencesManager(applicationContext)
+        // Get the SensorManager
+        val sensorManager = getSystemService(SENSOR_SERVICE) as? SensorManager
 
-        // Create ViewModel with the custom factory
-        val viewModel: ChannelsViewModel = ViewModelProvider(
-            this,
-            ChannelsViewModel.Factory(database.dao(), preferencesManager)
-        )[ChannelsViewModel::class.java]
-
-        // Set the content to Compose UI
-        setContent {
-            MaterialTheme {
-                // Call the main screen content
-                MainScreen(viewModel = viewModel)
-            }
-        }
-    }
-}
-
-@Composable
-fun MainScreen(viewModel: ChannelsViewModel) {
-    // Access preferences and database through the ViewModel
-    var setupCompleted by remember { mutableStateOf(viewModel.isSetupCompleted()) }
-    var channelCount by remember { mutableStateOf(viewModel.getNumberOfChannels()) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Channels Setup", style = MaterialTheme.typography.headlineMedium)
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Display setup completed status
-        Text("Setup Completed: ${if (setupCompleted) "Yes" else "No"}")
-
-        // Display current number of channels
-        Text("Number of Channels: $channelCount")
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Button(onClick = {
-            // Toggle setup complete status
-            setupCompleted = !setupCompleted
-            viewModel.setSetupCompleted(setupCompleted)
-        }) {
-            Text(if (setupCompleted) "Reset Setup" else "Complete Setup")
+        // Handle if SensorManager is null
+        if (sensorManager == null) {
+            val textView = findViewById<TextView>(R.id.sensorTextView)
+            textView?.text = "SensorManager is not available on this device."
+            return
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        // Get the list of all sensors
+        val sensorList = sensorManager.getSensorList(Sensor.TYPE_ALL)
 
-        Button(onClick = {
-            // Increment channel count
-            if (channelCount < 32) {
-                channelCount++
-                viewModel.setNumberOfChannels(channelCount)
-            }
-        }) {
-            Text("Add Channel")
+        // Check if sensors are available
+        if (sensorList.isNullOrEmpty()) {
+            val textView = findViewById<TextView>(R.id.sensorTextView)
+            textView?.text = "No sensors available on this device."
+            return
         }
+
+        // Display sensors in TextView as a simple list
+        val sensorText = StringBuilder("Available Sensors:\n")
+        for (sensor in sensorList) {
+            sensorText.append("${sensor.name}\n")
+        }
+        val textView = findViewById<TextView>(R.id.sensorTextView)
+        textView?.text = sensorText.toString()
+
+        // Display sensors in RecyclerView with icons and descriptions
+        val sensorsForRecyclerView = sensorList.map { deviceSensor ->
+            SensorItem(
+                title = deviceSensor.name,
+                description = "Type: ${deviceSensor.type}",
+                icon = R.drawable.sensor // Replace with an actual icon resource if available
+            )
+        }
+
+        // Set up RecyclerView with SensorAdapter
+        val sensorRecyclerView = findViewById<RecyclerView>(R.id.sensorRecyclerView)
+        sensorRecyclerView.layoutManager = LinearLayoutManager(this)
+        sensorRecyclerView.adapter = SensorAdapter(sensorsForRecyclerView)
     }
 }
