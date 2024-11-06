@@ -5,6 +5,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import com.example.mobileapp_project.models.ChannelConf
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
@@ -14,24 +15,15 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 
-data class ChannelConfig(
-    val channelId: Int,
-    val sensorType: Int,
-    val channelName: String = "Channel $channelId",
-    var triggerLevel: Float? = null,
-    var alarmLevel: Float? = null,
-    var isEnabled: Boolean = false // whether the channel is active
-)
-
 class AppSensorManager(
     private val context: Context,
     private val onSensorDataCollected: (String, Float, Float, Float) -> Unit
 ) : SensorEventListener {
 
-    private val channelConfigs = mutableListOf<ChannelConfig>()
+    private val channelConfigs = mutableListOf<com.example.mobileapp_project.models.ChannelConf>()
     private val sensorDataList = mutableListOf<String>()
 
-    fun setupChannels(configs: List<ChannelConfig>) {
+    fun setupChannels(configs: List<ChannelConf>) {
         channelConfigs.clear()
         channelConfigs.addAll(configs)
     }

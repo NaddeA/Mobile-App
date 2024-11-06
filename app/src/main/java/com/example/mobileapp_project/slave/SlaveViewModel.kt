@@ -5,24 +5,24 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.mobileapp_project.bluetooth.BluetoothServer
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
 
 class SlaveViewModel(
     private val context: Context,
     private val bluetoothServer: BluetoothServer
 ) : ViewModel() {
 
+    private val _sensorDataList = MutableStateFlow<List<String>>(emptyList())
+    val sensorDataList: StateFlow<List<String>> = _sensorDataList
+
     private val appSensorManager: AppSensorManager = AppSensorManager(context) { sensorType, x, y, z ->
         val sensorData = "$sensorType: X=$x, Y=$y, Z=$z"
-        _sensorDataList.add(sensorData)
+        _sensorDataList.value = _sensorDataList.value + sensorData
     }
 
-    private val _sensorDataList = mutableListOf<String>()
-    val sensorDataList: List<String> get() = _sensorDataList
     private var bluetoothSocket: BluetoothSocket? = null
-    init {
-        // Optional: Start data collection immediately or keep it stopped initially
-        // appSensorManager.startDataCollection() // Uncomment if auto-start needed
-    }
 
     /**
      * Starts sensor data collection through AppSensorManager.
@@ -42,7 +42,7 @@ class SlaveViewModel(
      * Sends the latest collected data to the master device over Bluetooth.
      */
     fun sendDataToMaster() {
-        val latestData = appSensorManager.getLoggedData() // Retrieve logged datab
+        val latestData = appSensorManager.getLoggedData() // Retrieve logged data
         bluetoothSocket?.let {
             bluetoothServer.sendResponse("DATA: $latestData", it)
         }
@@ -75,7 +75,6 @@ class SlaveViewModel(
                 sendDataToMaster() // Send logged data to master
             }
             else -> {
-                // Handle unrecognized command
                 bluetoothServer.sendResponse("ERROR: UNKNOWN COMMAND", socket)
                 Log.w("BluetoothServer", "Received unknown command: $command")
             }

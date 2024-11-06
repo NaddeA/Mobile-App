@@ -7,14 +7,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class MasterViewModel(private val bluetoothClient: BluetoothClient) : ViewModel() {
+
+import com.example.mobileapp_project.bluetooth.BluetoothHelper
+
+class MasterViewModel(private val bluetoothHelper: BluetoothHelper) : ViewModel() {
 
     private val _connectionStatus = MutableStateFlow("Disconnected")
     val connectionStatus: StateFlow<String> = _connectionStatus
 
     private val _receivedData = MutableStateFlow("No Data")
     val receivedData: StateFlow<String> = _receivedData
-
+    lateinit var bluetoothClient : BluetoothClient
     fun connectToSlave() {
         viewModelScope.launch {
             if (bluetoothClient.connectToSlave()) {

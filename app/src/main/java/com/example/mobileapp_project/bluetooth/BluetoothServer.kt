@@ -1,70 +1,83 @@
 package com.example.mobileapp_project.bluetooth
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.content.Context
-import android.content.pm.PackageManager
 import android.util.Log
-import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 import java.io.IOException
+import java.io.OutputStream
 import java.util.*
 
 class BluetoothServer(
     private val context: Context,
-    private val onCommandReceived: (String, BluetoothSocket) -> Unit
+    private val bluetoothAdapter: BluetoothAdapter?,
+    private val uuid: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Default UUID for Bluetooth SPP
 ) {
-    private val bluetoothAdapter: BluetoothAdapter = (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
-    private val deviceUUID: UUID = UUID.fromString("your-uuid-here")
+
     private var serverSocket: BluetoothServerSocket? = null
+    private var isRunning = true
 
-    suspend fun startAcceptingConnections() = withContext(Dispatchers.IO) {
-        if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            Log.e("BluetoothServer", "BLUETOOTH_CONNECT permission not granted")
-            return@withContext
-        }
+    @SuppressLint("MissingPermission")
+    fun startAcceptingConnections(onCommandReceived: (String, BluetoothSocket) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                serverSocket = bluetoothAdapter?.listenUsingRfcommWithServiceRecord("BluetoothServer", uuid)
+                Log.d("BluetoothServer", "Waiting for connection...")
 
-        try {
-            serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord("SlaveService", deviceUUID)
-            while (true) {
-                val socket: BluetoothSocket? = serverSocket?.accept()
-                socket?.let {
-                    handleConnection(it)
-                    serverSocket?.close() // Close after accepting one connection
+                while (isRunning) {
+                    val socket = serverSocket?.accept()
+                    socket?.let {
+                        Log.d("BluetoothServer", "Connection accepted from ${it.remoteDevice.name}")
+                        listenForCommands(it, onCommandReceived)
+                    }
                 }
+            } catch (e: IOException) {
+                Log.e("BluetoothServer", "Error accepting connection: ${e.message}")
+            } finally {
+                closeConnection()
             }
-        } catch (e: IOException) {
-            Log.e("BluetoothServer", "Error starting connection: ${e.message}")
         }
     }
 
-    private fun handleConnection(socket: BluetoothSocket) {
-        val inputStream = socket.inputStream
-        val buffer = ByteArray(1024)
-        try {
-            val bytes = inputStream.read(buffer)
-            val command = String(buffer, 0, bytes)
-            onCommandReceived(command, socket)
-        } catch (e: IOException) {
-            Log.e("BluetoothServer", "Error handling connection: ${e.message}")
+    private fun listenForCommands(socket: BluetoothSocket, onCommandReceived: (String, BluetoothSocket) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val inputStream = socket.inputStream
+            val buffer = ByteArray(1024)
+            while (isRunning) {
+                try {
+                    val bytesRead = inputStream.read(buffer)
+                    val command = String(buffer, 0, bytesRead)
+                    onCommandReceived(command, socket)
+                } catch (e: IOException) {
+                    Log.e("BluetoothServer", "Error reading command: ${e.message}")
+                    break
+                }
+            }
         }
     }
 
     fun sendResponse(response: String, socket: BluetoothSocket) {
-        try {
-            socket.outputStream.write(response.toByteArray())
-        } catch (e: IOException) {
-            Log.e("BluetoothServer", "Error sending response: ${e.message}")
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val outputStream: OutputStream = socket.outputStream
+                outputStream.write(response.toByteArray())
+                outputStream.flush()
+                Log.d("BluetoothServer", "Sent response: $response")
+            } catch (e: IOException) {
+                Log.e("BluetoothServer", "Error sending response: ${e.message}")
+            }
         }
     }
 
     fun closeConnection() {
+        isRunning = false
         try {
             serverSocket?.close()
-            serverSocket = null
             Log.d("BluetoothServer", "Server socket closed")
         } catch (e: IOException) {
             Log.e("BluetoothServer", "Error closing server socket: ${e.message}")
