@@ -14,8 +14,6 @@ import androidx.core.content.ContextCompat
 import java.io.IOException
 import java.io.OutputStream
 import java.util.UUID
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class BluetoothHelper(private val context: Context) {
     private val bluetoothAdapter: BluetoothAdapter? = getBluetoothAdapter()
@@ -123,31 +121,28 @@ class BluetoothHelper(private val context: Context) {
     // Connect to a specified Bluetooth device
 
     @SuppressLint("MissingPermission")
-    suspend fun connectToDevice(device: BluetoothDevice, callback: (BluetoothDevice, BluetoothSocket?) -> Unit) {
+    fun connectToDevice(device: BluetoothDevice, callback: (BluetoothDevice, BluetoothSocket?) -> Unit): Boolean {
         if (!isPermissionGranted()) {
             requestPermissions()
-            return
+            return false // Permissions not granted, return false
         }
 
         connectionCallback = callback
         stopDiscovery() // Stop discovery before connecting
 
-        withContext(Dispatchers.IO) { // Perform the connection on the IO dispatcher
-            try {
-                val socket = device.createRfcommSocketToServiceRecord(SERVICE_UUID)
-                socket.connect()
-                bluetoothSocket = socket // Set the connected socket
-                withContext(Dispatchers.Main) {
-                    callback(device, socket) // Notify successful connection on the main thread
-                }
-            } catch (e: IOException) {
-                Log.e("BluetoothHelper", "Connection failed", e)
-                withContext(Dispatchers.Main) {
-                    callback(device, null) // Notify failed connection on the main thread
-                }
-            }
+        return try {
+            val socket = device.createRfcommSocketToServiceRecord(SERVICE_UUID)
+            socket.connect()
+            bluetoothSocket = socket // Set the connected socket
+            callback(device, socket) // Notify successful connection
+            true // Connection successful, return true
+        } catch (e: IOException) {
+            Log.e("BluetoothHelper", "Connection failed", e)
+            callback(device, null) // Notify failed connection
+            false // Connection failed, return false
         }
     }
+
 
     // Retrieve paired devices
     @SuppressLint("MissingPermission")
@@ -194,21 +189,18 @@ class BluetoothHelper(private val context: Context) {
     }
 
     // Send a command to the connected Bluetooth device
-    suspend fun sendCommand(command: String) {
+    fun sendCommand(command: String) {
         bluetoothSocket?.let { socket ->
             try {
-                withContext(Dispatchers.IO) { // Send data in a background thread
-                    val outputStream: OutputStream = socket.outputStream
-                    outputStream.write(command.toByteArray())
-                    outputStream.flush()
-                    Log.d("BluetoothHelper", "Command sent: $command")
-                }
+                val outputStream: OutputStream = socket.outputStream
+                outputStream.write(command.toByteArray())
+                outputStream.flush()
+                Log.d("BluetoothHelper", "Command sent: $command")
             } catch (e: IOException) {
                 Log.e("BluetoothHelper", "Error sending command", e)
             }
         } ?: Log.e("BluetoothHelper", "No active Bluetooth connection to send command")
     }
-
 
     // Cleanup resources and unregister the receiver
     fun cleanup() {
@@ -222,5 +214,4 @@ class BluetoothHelper(private val context: Context) {
     companion object {
         private val SERVICE_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
     }
-
 }
