@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothSocket
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
@@ -15,17 +16,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+
+
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.mobileapp_project.bluetoothj.BluetoothReceiver
+import com.example.mobileapp_project.bluetoothj.Discoverability
+import com.example.mobileapp_project.ui.theme.MainScreen
 import com.example.mobileapp_project.ui.theme.MobileAppprojectTheme
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     private lateinit var bluetoothAdapter: BluetoothAdapter
@@ -34,6 +33,9 @@ class MainActivity : ComponentActivity() {
     private lateinit var discoverabilityReceiver: Discoverability
     private var discoveredDevices = mutableListOf<String>()
     private lateinit var bluetoothEnableLauncher: ActivityResultLauncher<Intent>
+    private val discoveredDevicesMap = mutableMapOf<String, BluetoothDevice>()
+    private var connectedSocket: BluetoothSocket? = null
+    private val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,8 +69,9 @@ class MainActivity : ComponentActivity() {
                 Log.d("Bluetooth", "Bluetooth enabling denied")
             }
         }
-        registerReceiver(discoverDeviceReceiver, IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED))
 
+        // Register receiver for discoverability changes
+        registerReceiver(discoverabilityReceiver, IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED))
 
         setContent {
             MobileAppprojectTheme {
@@ -77,7 +80,9 @@ class MainActivity : ComponentActivity() {
                     onDiscoverDevices = { discoverDevices() },
                     onGetPairedDevices = { getPairedDevices() },
                     onDiscoverability = { discoverability() },
-                    discoveredDevices = discoveredDevices
+                    onStartAcceptingConnections = { startAcceptingConnections() },
+                    discoveredDevices = discoveredDevices,
+                    onConnectToDevice = { deviceInfo -> connectToDevice(deviceInfo) }
                 )
             }
         }
@@ -102,30 +107,6 @@ class MainActivity : ComponentActivity() {
 
     @SuppressLint("MissingPermission")
     private fun discoverDevices() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.ACCESS_FINE_LOCATION),
-                    1
-                )
-                return
-            }
-        } else {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_FINE_LOCATION),
-                    1
-                )
-                return
-            }
-        }
-
         if (bluetoothAdapter.isDiscovering) {
             bluetoothAdapter.cancelDiscovery()
         }
@@ -156,19 +137,37 @@ class MainActivity : ComponentActivity() {
                     Log.d("Bluetooth", "Discovery Finished")
                 }
                 BluetoothDevice.ACTION_FOUND -> {
-                    val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
-                    } else {
-                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    }
+                    val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                     device?.let {
-                        val deviceName = "Samsun24S"
-                        val deviceAddress = "Kristianstad"
-                        //val deviceName = device.name ?: "Unknown Device"
-                        //val deviceAddress = device.address
-                        Log.d("Bluetooth", "Device found: $deviceName - $deviceAddress")
+                        val deviceName = device.name ?: "Unknown Device"
+                        val deviceAddress = device.address
+                        discoveredDevicesMap[deviceAddress] = device
                         discoveredDevices.add("$deviceName - $deviceAddress")
+                        Log.d("Bluetooth", "Device found: $deviceName - $deviceAddress")
                     }
+                }
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun connectToDevice(deviceInfo: String) {
+        val deviceAddress = deviceInfo.split(" - ")[1]
+        val device = discoveredDevicesMap[deviceAddress]
+
+        if (device != null) {
+            val socket = device.createRfcommSocketToServiceRecord(MY_UUID)
+            bluetoothAdapter.cancelDiscovery()  // Cancel discovery to save resources
+            try {
+                socket.connect()
+                connectedSocket = socket
+                Log.d("Bluetooth", "Connected to device: ${device.name}")
+            } catch (e: Exception) {
+                Log.e("Bluetooth", "Failed to connect: ${e.message}")
+                try {
+                    socket.close()
+                } catch (closeException: Exception) {
+                    Log.e("Bluetooth", "Could not close socket: ${closeException.message}")
                 }
             }
         }
@@ -242,63 +241,18 @@ class MainActivity : ComponentActivity() {
         startActivity(discoverableIntent)
     }
 
-    @Preview(showBackground = true)
-    @Composable
-    fun DefaultPreview() {
-        MobileAppprojectTheme {
-            MainScreen(
-                onBluetoothToggle = {},
-                onDiscoverDevices = {},
-                onGetPairedDevices = {},
-                onDiscoverability = {},
-                discoveredDevices = emptyList()
-            )
+    @SuppressLint("MissingPermission")
+    private fun startAcceptingConnections() {
+        val serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord("BluetoothApp", MY_UUID)
+        val thread = Thread {
+            try {
+                val socket = serverSocket.accept()
+                connectedSocket = socket
+                Log.d("Bluetooth", "A device has connected: ${socket.remoteDevice.name}")
+            } catch (e: Exception) {
+                Log.e("Bluetooth", "Failed to accept connection: ${e.message}")
+            }
         }
-    }
-}
-
-@Composable
-fun MainScreen(
-    onBluetoothToggle: () -> Unit,
-    onDiscoverDevices: () -> Unit,
-    onGetPairedDevices: () -> Unit,
-    onDiscoverability: () -> Unit,
-    discoveredDevices: List<String>
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Button(onClick = onBluetoothToggle) {
-            Text("Toggle Bluetooth")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = onDiscoverDevices) {
-            Text("Discover Devices")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = onGetPairedDevices) {
-            Text("Get Paired Devices")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = onDiscoverability) {
-            Text("Make Discoverable")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Discovered Devices:")
-        discoveredDevices.forEach { device ->
-            Text(device)
-        }
+        thread.start()
     }
 }
