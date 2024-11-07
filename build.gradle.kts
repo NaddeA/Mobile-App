@@ -9,4 +9,24 @@ plugins {
 
 //    kotlin("kapt") version "2.0.21"
 //    alias(libs.plugins.kotlin.kapt) // kapt for the dependencies
+
+
+}
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.1.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
 }

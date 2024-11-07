@@ -50,9 +50,9 @@ android {
 dependencies {
 
 
-
     implementation("androidx.compose.ui:ui:1.5.0")
     implementation("androidx.compose.material:material:1.5.0")
+    implementation("androidx.compose.material3:material3:1.0.0-alpha14")
     implementation("androidx.compose.ui:ui-tooling-preview:1.5.0")
     debugImplementation("androidx.compose.ui:ui-tooling:1.5.0")
 
@@ -95,6 +95,12 @@ dependencies {
     // Additional dependencies
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.9.0")
+}
+
+repositories {
+    google()
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }  // Specific repository for unique library.
 }
 
 

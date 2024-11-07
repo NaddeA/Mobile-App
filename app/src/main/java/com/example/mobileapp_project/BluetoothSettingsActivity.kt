@@ -6,11 +6,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 
-class BluetoothSettingsActivity : AppCompatActivity() {
+class BluetoothSettingsActivity : ComponentActivity() {
 
     private val bluetoothAdapter: BluetoothAdapter? by lazy { BluetoothAdapter.getDefaultAdapter() }
     private lateinit var enableBluetoothLauncher: ActivityResultLauncher<Intent>
