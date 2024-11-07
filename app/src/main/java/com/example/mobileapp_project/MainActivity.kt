@@ -9,12 +9,15 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.platform.ComposeView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val composeView = findViewById<ComposeView>(R.id.compose_view)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
