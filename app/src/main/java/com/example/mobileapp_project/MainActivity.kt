@@ -1,10 +1,12 @@
 package com.example.mobileapp_project
 
+import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,13 +18,23 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val bluetoothSettingsButton = findViewById<Button>(R.id.bluetoothSettingsButton)
+        bluetoothSettingsButton.setOnClickListener {
+            val intent = Intent(this, BluetoothSettingsActivity::class.java)
+            startActivity(intent)
+        }
+
         // Get the SensorManager
         val sensorManager = getSystemService(SENSOR_SERVICE) as? SensorManager
 
         // Handle if SensorManager is null
         if (sensorManager == null) {
             // Om SensorManager inte är tillgänglig, visa ett felmeddelande i en dialog eller Toast
-            Toast.makeText(this, "SensorManager is not available on this device.", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "SensorManager is not available on this device.",
+                Toast.LENGTH_LONG
+            ).show()
             return
         }
 
@@ -40,14 +52,22 @@ class MainActivity : AppCompatActivity() {
             SensorItem(
                 title = deviceSensor.name,
                 description = "Type: ${deviceSensor.type}",
-                icon = R.drawable.sensor // Replace with an actual icon resource if available
+                icon = R.drawable.sensor, // Placeholder för ikon
+                type = deviceSensor.type // Skicka med sensorns typ
             )
         }
-
-        // Set up RecyclerView with SensorAdapter
         val sensorRecyclerView = findViewById<RecyclerView>(R.id.sensorRecyclerView)
         sensorRecyclerView.layoutManager = LinearLayoutManager(this)
-        sensorRecyclerView.adapter = SensorAdapter(sensorsForRecyclerView)
+
+// Skapa adaptern och hantera klick för varje item
+        sensorRecyclerView.adapter = SensorAdapter(sensorsForRecyclerView) { sensorItem ->
+            // Visa realtidsdata när en specifik sensor klickas
+            val intent = Intent(this, SensorDetailActivity::class.java)
+            intent.putExtra("sensor_name", sensorItem.title)
+            intent.putExtra("sensor_type", sensorItem.type)
+            startActivity(intent)
+
+        }
     }
 }
 
