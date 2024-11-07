@@ -2,20 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
 
-
+    <!-- Check this, Early android versions do not have LE-->
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
     <uses-feature android:name="android.software.companion_device_setup" />
 
     <application
+        android:name=".BluetoothApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -25,9 +27,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MobileAppproject"
         tools:targetApi="31">
+<<<<<<< HEAD
         <receiver android:name=".bluetoothj.BluetoothReceiver" />
 
         <receiver android:name=".bluetoothj.Discoverability"
+=======
+        <receiver android:name=".Bluetooth.BluetoothReceiver" />
+
+        <receiver android:name=".Bluetooth.Discoverability"
+>>>>>>> 6e0355f4e3961f2f73e0be74a68cef0b83ed44f5
             android:exported="true">
             <intent-filter>
                 <action android:name="android.bluetooth.adapter.action.SCAN_MODE_CHANGED" />

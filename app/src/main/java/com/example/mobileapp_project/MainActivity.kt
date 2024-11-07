@@ -1,19 +1,20 @@
 package com.example.mobileapp_project
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+<<<<<<< HEAD
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
+=======
+>>>>>>> 6e0355f4e3961f2f73e0be74a68cef0b83ed44f5
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+<<<<<<< HEAD
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 
@@ -36,29 +37,30 @@ class MainActivity : ComponentActivity() {
     private val discoveredDevicesMap = mutableMapOf<String, BluetoothDevice>()
     private var connectedSocket: BluetoothSocket? = null
     private val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+=======
+import androidx.compose.runtime.*
+class MainActivity : ComponentActivity() {
+>>>>>>> 6e0355f4e3961f2f73e0be74a68cef0b83ed44f5
 
+
+    private lateinit var bluetoothHelper: BluetoothHelper
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    super.onCreate(savedInstanceState)
 
-        // Set up Bluetooth Adapter depending on Android version
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-            bluetoothAdapter = bluetoothManager.adapter
-        } else {
-            bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-        }
+    // Initialize BluetoothHelper with the current context
+    bluetoothHelper = BluetoothHelper(this)
 
-        receiver = BluetoothReceiver()
-        discoverabilityReceiver = Discoverability()
+    // Register the Bluetooth state receiver
+    bluetoothHelper.registerBluetoothReceiver()
 
-        // Request permissions if necessary
-        val requiredPermissions = getRequiredPermissions()
-        if (!requiredPermissions.all {
-                ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
-            }) {
-            ActivityCompat.requestPermissions(this, requiredPermissions, 1)
-        }
+    setContent(){
+        val discovered: List<BluetoothDevice> = bluetoothHelper.getDiscoveredDevices()
+        val paired: List<BluetoothDevice> = bluetoothHelper.getPairedDevices()
+        var currentScreen by remember { mutableStateOf<Screen>(Screen.MainMenu) }
+//
+        AppScreen(bluetoothHelper)
 
+<<<<<<< HEAD
         // Register for Bluetooth enable result
         bluetoothEnableLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -86,27 +88,17 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+=======
+    }
+}
+
+    private fun toggleBluetooth() {
+        bluetoothHelper.toggleBluetooth()
+>>>>>>> 6e0355f4e3961f2f73e0be74a68cef0b83ed44f5
     }
 
-    // Function to determine permissions required based on Android version
-    private fun getRequiredPermissions(): Array<String> {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            arrayOf(
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_CONNECT,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
-        } else {
-            arrayOf(
-                Manifest.permission.BLUETOOTH,
-                Manifest.permission.BLUETOOTH_ADMIN,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
-        }
-    }
-
-    @SuppressLint("MissingPermission")
     private fun discoverDevices() {
+<<<<<<< HEAD
         if (bluetoothAdapter.isDiscovering) {
             bluetoothAdapter.cancelDiscovery()
         }
@@ -206,41 +198,24 @@ class MainActivity : ComponentActivity() {
                 Log.d("Bluetooth", "Bluetooth disabled programmatically")
             }
         }
+=======
+        bluetoothHelper.discoverDevices()
+>>>>>>> 6e0355f4e3961f2f73e0be74a68cef0b83ed44f5
     }
 
     @SuppressLint("MissingPermission")
     private fun getPairedDevices() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
-                1
-            )
-            return
-        }
-
-        val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter.bondedDevices
-        pairedDevices?.forEach { device ->
-            Log.d("PairedDevices", "${device.name} - ${device.address}")
+        val pairedDevices = bluetoothHelper.getPairedDevices() //this could cause an Issue because of the permission required for the name in 12+ but for now it will be left assuming the Bluetooth helper class takes care of it
+        pairedDevices.forEach { device ->
+            Log.d("PairedDevices", "Device: ${device.name} - ${device.address}")
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private fun discoverability() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
-                1
-            )
-            return
-        }
-
-        val discoverableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
-        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300)
-        startActivity(discoverableIntent)
+    private fun enableDiscoverability() {
+        bluetoothHelper.enableDiscoverability()
     }
 
+<<<<<<< HEAD
     @SuppressLint("MissingPermission")
     private fun startAcceptingConnections() {
         val serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord("BluetoothApp", MY_UUID)
@@ -256,3 +231,12 @@ class MainActivity : ComponentActivity() {
         thread.start()
     }
 }
+=======
+    override fun onDestroy() {
+        super.onDestroy()
+        // Unregister the Bluetooth state receiver when activity is destroyed
+        bluetoothHelper.unregisterBluetoothReceiver()
+    }
+}
+
+>>>>>>> 6e0355f4e3961f2f73e0be74a68cef0b83ed44f5

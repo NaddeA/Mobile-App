@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -10,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.mobileapp_project"
-        minSdk = 32
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -32,7 +34,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "12"
     }
     buildFeatures {
         compose = true
@@ -40,6 +42,16 @@ android {
 }
 
 dependencies {
+
+    // Mockito core library for unit testing
+    testImplementation(libs.mockito.core)
+
+    // Optional: Mockito inline for mocking final classes and methods
+    testImplementation(libs.mockito.inline)
+
+    // Optional: Mockito Kotlin extensions for easier usage in Kotlin
+    testImplementation(libs.mockito.kotlin)
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -56,4 +68,14 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    // Hilt implementation
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+
+
 }
