@@ -1,59 +1,74 @@
 package com.example.mobileapp_project
 
-import android.annotation.SuppressLint
-import android.bluetooth.BluetoothDevice
+import android.content.Intent
+import android.hardware.Sensor
+import android.hardware.SensorManager
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.runtime.*
-class MainActivity : ComponentActivity() {
+import android.view.View
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
+class MainActivity : AppCompatActivity() {
 
-    private lateinit var bluetoothHelper: BluetoothHelper
     override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-    // Initialize BluetoothHelper with the current context
-    bluetoothHelper = BluetoothHelper(this)
+        val bluetoothSettingsButton = findViewById<Button>(R.id.bluetoothSettingsButton)
+        bluetoothSettingsButton.setOnClickListener {
+            val intent = Intent(this, BluetoothSettingsActivity::class.java)
+            startActivity(intent)
+        }
 
-    // Register the Bluetooth state receiver
-    bluetoothHelper.registerBluetoothReceiver()
+        // Get the SensorManager
+        val sensorManager = getSystemService(SENSOR_SERVICE) as? SensorManager
 
-    setContent(){
-        val discovered: List<BluetoothDevice> = bluetoothHelper.getDiscoveredDevices()
-        val paired: List<BluetoothDevice> = bluetoothHelper.getPairedDevices()
-        var currentScreen by remember { mutableStateOf<Screen>(Screen.MainMenu) }
-//
-        AppScreen(bluetoothHelper)
+        // Handle if SensorManager is null
+        if (sensorManager == null) {
+            // Om SensorManager inte är tillgänglig, visa ett felmeddelande i en dialog eller Toast
+            Toast.makeText(
+                this,
+                "SensorManager is not available on this device.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
 
-    }
-}
+        // Get the list of all sensors
+        val sensorList = sensorManager.getSensorList(Sensor.TYPE_ALL)
 
-    private fun toggleBluetooth() {
-        bluetoothHelper.toggleBluetooth()
-    }
+        // Check if sensors are available
+        if (sensorList.isNullOrEmpty()) {
+            Toast.makeText(this, "No sensors available on this device.", Toast.LENGTH_LONG).show()
+            return
+        }
 
-    private fun discoverDevices() {
-        bluetoothHelper.discoverDevices()
-    }
+        // Display sensors in RecyclerView with icons and descriptions
+        val sensorsForRecyclerView = sensorList.map { deviceSensor ->
+            SensorItem(
+                title = deviceSensor.name,
+                description = "Type: ${deviceSensor.type}",
+                icon = R.drawable.sensor, // Placeholder för ikon
+                type = deviceSensor.type // Skicka med sensorns typ
+            )
+        }
+        val sensorRecyclerView = findViewById<RecyclerView>(R.id.sensorRecyclerView)
+        sensorRecyclerView.layoutManager = LinearLayoutManager(this)
 
-    @SuppressLint("MissingPermission")
-    private fun getPairedDevices() {
-        val pairedDevices = bluetoothHelper.getPairedDevices() //this could cause an Issue because of the permission required for the name in 12+ but for now it will be left assuming the Bluetooth helper class takes care of it
-        pairedDevices.forEach { device ->
-            Log.d("PairedDevices", "Device: ${device.name} - ${device.address}")
+// Skapa adaptern och hantera klick för varje item
+        sensorRecyclerView.adapter = SensorAdapter(sensorsForRecyclerView) { sensorItem ->
+            // Visa realtidsdata när en specifik sensor klickas
+            val intent = Intent(this, SensorDetailActivity::class.java)
+            intent.putExtra("sensor_name", sensorItem.title)
+            intent.putExtra("sensor_type", sensorItem.type)
+            startActivity(intent)
+
         }
     }
-
-    private fun enableDiscoverability() {
-        bluetoothHelper.enableDiscoverability()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // Unregister the Bluetooth state receiver when activity is destroyed
-        bluetoothHelper.unregisterBluetoothReceiver()
-    }
 }
+
 

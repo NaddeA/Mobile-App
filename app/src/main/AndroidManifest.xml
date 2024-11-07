@@ -16,6 +16,9 @@
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
     <uses-feature android:name="android.software.companion_device_setup" />
 
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <application
         android:name=".BluetoothApp"
         android:allowBackup="true"
@@ -40,6 +43,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".BluetoothSettingsActivity" />
+
+        <activity android:name=".SensorDetailActivity" />
     </application>
 
 </manifest>

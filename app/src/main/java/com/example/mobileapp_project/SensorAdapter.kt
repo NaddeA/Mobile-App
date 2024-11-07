@@ -5,11 +5,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
-
-
-class SensorAdapter(private val sensorList: List<SensorItem>) : RecyclerView.Adapter<SensorAdapter.SensorViewHolder>() {
+class SensorAdapter(
+    private val sensorList: List<SensorItem>,
+    private val onItemClick: (SensorItem) -> Unit // Klicklyssnare för varje item
+) : RecyclerView.Adapter<SensorAdapter.SensorViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SensorViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_sensor, parent, false)
@@ -21,6 +23,11 @@ class SensorAdapter(private val sensorList: List<SensorItem>) : RecyclerView.Ada
         holder.sensorTitle.text = sensorItem.title
         holder.sensorDescription.text = sensorItem.description
         holder.sensorIcon.setImageResource(sensorItem.icon)
+
+        // Hantera klick på itemView
+        holder.itemView.setOnClickListener {
+            onItemClick(sensorItem) // Anropa klicklyssnaren med aktuellt sensorItem
+        }
     }
 
     override fun getItemCount(): Int = sensorList.size
