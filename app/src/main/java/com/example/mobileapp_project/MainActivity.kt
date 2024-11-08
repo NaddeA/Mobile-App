@@ -29,98 +29,102 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.platform.ComposeView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.BlueCenter.DataLoger.R
 import dagger.hilt.android.AndroidEntryPoint
 
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @AndroidEntryPoint
-    class MainActivity : AppCompatActivity() {
-        private val bluetoothManager by lazy {
-            applicationContext.getSystemService(BluetoothManager::class.java)
-        }
-        private val bluetoothAdapter by lazy {
-            bluetoothManager?.adapter
-        }
-
-        private val isBluetoothEnabled: Boolean
-            get() = bluetoothAdapter?.isEnabled == true
 
 
-        override fun onCreate(savedInstanceState: Bundle?) {
-            val composeView = findViewById<ComposeView>(R.id.compose_view)
-            super.onCreate(savedInstanceState)
-            setContentView(R.layout.activity_main)
-            // bluetooth elements
-            val enableBluetoothLauncher = registerForActivityResult(
-                ActivityResultContracts.StartActivityForResult()
-            ) { /* Not needed */ }
-            val permissionLauncher = registerForActivityResult(
-                ActivityResultContracts.RequestMultiplePermissions()
-            ) { perms ->
-                val canEnableBluetooth = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    perms[Manifest.permission.BLUETOOTH_CONNECT] == true
-                } else true
+    private val bluetoothManager by lazy {
+        applicationContext.getSystemService(BluetoothManager::class.java)
+    }
+    private val bluetoothAdapter by lazy {
+        bluetoothManager?.adapter
+    }
 
-                if (canEnableBluetooth && !isBluetoothEnabled) {
-                    enableBluetoothLauncher.launch(
-                        Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                    )
-                }
-            }
-            val bluetoothSettingsButton = findViewById<Button>(R.id.bluetoothSettingsButton)
-            bluetoothSettingsButton.setOnClickListener {
-                val intent = Intent(this, BluetoothSettingsActivity::class.java)
-                startActivity(intent)
-            }
+    private val isBluetoothEnabled: Boolean
+        get() = bluetoothAdapter?.isEnabled == true
 
-            // Get the SensorManager
-            val sensorManager = getSystemService(SENSOR_SERVICE) as? SensorManager
 
-            // Handle if SensorManager is null
-            if (sensorManager == null) {
-                // Om SensorManager inte är tillgänglig, visa ett felmeddelande i en dialog eller Toast
-                Toast.makeText(
-                    this,
-                    "SensorManager is not available on this device.",
-                    Toast.LENGTH_LONG
-                ).show()
-                return
-            }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        val composeView = findViewById<ComposeView>(R.id.compose_view)
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        // bluetooth elements
+        val enableBluetoothLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { /* Not needed */ }
+        val permissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { perms ->
+            val canEnableBluetooth = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                perms[Manifest.permission.BLUETOOTH_CONNECT] == true
+            } else true
 
-            // Get the list of all sensors
-            val sensorList = sensorManager.getSensorList(Sensor.TYPE_ALL)
-
-            // Check if sensors are available
-            if (sensorList.isNullOrEmpty()) {
-                Toast.makeText(this, "No sensors available on this device.", Toast.LENGTH_LONG)
-                    .show()
-                return
-            }
-
-            // Display sensors in RecyclerView with icons and descriptions
-            val sensorsForRecyclerView = sensorList.map { deviceSensor ->
-                SensorItem(
-                    title = deviceSensor.name,
-                    description = "Type: ${deviceSensor.type}",
-                    icon = R.drawable.sensor, // Placeholder för ikon
-                    type = deviceSensor.type // Skicka med sensorns typ
+            if (canEnableBluetooth && !isBluetoothEnabled) {
+                enableBluetoothLauncher.launch(
+                    Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                 )
             }
-            val sensorRecyclerView = findViewById<RecyclerView>(R.id.sensorRecyclerView)
-            sensorRecyclerView.layoutManager = LinearLayoutManager(this)
+        }
+        val bluetoothSettingsButton = findViewById<Button>(R.id.bluetoothSettingsButton)
+        bluetoothSettingsButton.setOnClickListener {
+            val intent = Intent(this, BluetoothSettingsActivity::class.java)
+            startActivity(intent)
+        }
+
+        // Get the SensorManager
+        val sensorManager = getSystemService(SENSOR_SERVICE) as? SensorManager
+
+        // Handle if SensorManager is null
+        if (sensorManager == null) {
+            // Om SensorManager inte är tillgänglig, visa ett felmeddelande i en dialog eller Toast
+            Toast.makeText(
+                this,
+                "SensorManager is not available on this device.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
+        // Get the list of all sensors
+        val sensorList = sensorManager.getSensorList(Sensor.TYPE_ALL)
+
+        // Check if sensors are available
+        if (sensorList.isNullOrEmpty()) {
+            Toast.makeText(this, "No sensors available on this device.", Toast.LENGTH_LONG)
+                .show()
+            return
+        }
+
+        // Display sensors in RecyclerView with icons and descriptions
+        val sensorsForRecyclerView = sensorList.map { deviceSensor ->
+            SensorItem(
+                title = deviceSensor.name,
+                description = "Type: ${deviceSensor.type}",
+                icon = R.drawable.sensor, // Placeholder för ikon
+                type = deviceSensor.type // Skicka med sensorns typ
+            )
+        }
+        val sensorRecyclerView = findViewById<RecyclerView>(R.id.sensorRecyclerView)
+        sensorRecyclerView.layoutManager = LinearLayoutManager(this)
 
 // Skapa adaptern och hantera klick för varje item
-            sensorRecyclerView.adapter = SensorAdapter(sensorsForRecyclerView) { sensorItem ->
-                // Visa realtidsdata när en specifik sensor klickas
-                val intent = Intent(this, SensorDetailActivity::class.java)
-                intent.putExtra("sensor_name", sensorItem.title)
-                intent.putExtra("sensor_type", sensorItem.type)
-                startActivity(intent)
+        sensorRecyclerView.adapter = SensorAdapter(sensorsForRecyclerView) { sensorItem ->
+            // Visa realtidsdata när en specifik sensor klickas
+            val intent = Intent(this, SensorDetailActivity::class.java)
+            intent.putExtra("sensor_name", sensorItem.title)
+            intent.putExtra("sensor_type", sensorItem.type)
+            startActivity(intent)
 
-            }
         }
     }
 }
+
+
 // the commented UI arguments is for refrance on how the bluetooth is supposed to work
 //setContent {
 //    BluetoothChatTheme {

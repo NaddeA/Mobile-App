@@ -7,12 +7,12 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mobileapp_project"
+    namespace = "com.BlueCenter.DataLoger"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.mobileapp_project"
-        minSdk = 25
+        applicationId = "com.BlueCenter.DataLoger"
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -38,24 +38,15 @@ android {
     }
     buildFeatures {
         compose = true
-        compose = true
-        viewBinding = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.0"
     }
 }
 
 dependencies {
-
-
-    implementation("androidx.compose.ui:ui:1.5.0")
-    implementation("androidx.compose.material:material:1.5.0")
-    implementation("androidx.compose.material3:material3:1.0.0-alpha14")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.5.0")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.5.0")
-
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.ui.tooling.preview)
+    debugImplementation(libs.compose.ui.tooling)
     // Mockito core library for unit testing
     testImplementation(libs.mockito.core)
 
@@ -64,7 +55,6 @@ dependencies {
 
     // Optional: Mockito Kotlin extensions for easier usage in Kotlin
     testImplementation(libs.mockito.kotlin)
-
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -76,6 +66,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.recyclerview)
 
+
+    implementation(libs.androidx.appcompat)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -83,24 +75,10 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
+    implementation(libs.google.material)
 
     // Hilt implementation
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
 
-    // Additional dependencies
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.9.0")
 }
-
-repositories {
-    google()
-    mavenCentral()
-    maven { url = uri("https://jitpack.io") }  // Specific repository for unique library.
-}
-
-
