@@ -13,6 +13,7 @@ import android.content.pm.PackageManager
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothController
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothDeviceDomain
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothMessage
+import com.example.mobileapp_project.Bluetooth.domain.chat.CommandResult
 import com.example.mobileapp_project.Bluetooth.domain.chat.ConnectionResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +26,17 @@ import java.util.*
 class AndroidBluetoothController(
     private val context: Context
 ): BluetoothController {
+
+    override fun sendCommand(command: String): Flow<CommandResult> = flow {
+        try {
+            if (dataTransferService == null) throw IOException("Not connected")
+            dataTransferService?.sendMessage(command.toByteArray())
+            emit(CommandResult.CommandSent)
+        } catch (e: IOException) {
+            emit(CommandResult.Error("Failed to send command: ${e.message}"))
+        }
+    }
+
 
     // Bluetooth Manager and Adapter initialization for handling Bluetooth actions
     private val bluetoothManager by lazy {
@@ -181,6 +193,13 @@ class AndroidBluetoothController(
         }.onCompletion {
             closeConnection()
         }.flowOn(Dispatchers.IO)
+    }
+    override fun receiveResponse(): Flow<String> = flow {
+        dataTransferService?.let { service ->
+            service.listenForIncomingMessages().collect {
+                emit(it.message)
+            }
+        } ?: emit("")
     }
 
     // Send a message through an established Bluetooth connection

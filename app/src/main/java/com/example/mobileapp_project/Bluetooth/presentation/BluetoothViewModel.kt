@@ -1,10 +1,14 @@
 package com.example.mobileapp_project.Bluetooth.presentation
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobileapp_project.Bluetooth.presentation.BluetoothUiState
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothController
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothDeviceDomain
+import com.example.mobileapp_project.Bluetooth.domain.chat.CommandResult
 import com.example.mobileapp_project.Bluetooth.domain.chat.ConnectionResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -17,6 +21,28 @@ import kotlin.text.Typography.dagger
 class BluetoothViewModel @Inject constructor(
     private val bluetoothController: BluetoothController
 ): ViewModel() {
+    var isMaster: Boolean by mutableStateOf(false)
+
+    fun setRoleAsMaster() {
+        isMaster = true
+        bluetoothController.startBluetoothServer().listen() // Server listens for connections from slaves
+    }
+    fun setRoleAsSlave(device: BluetoothDeviceDomain) {
+        isMaster = false
+        bluetoothController.connectToDevice(device).listen()
+    }
+    suspend fun sendMasterCommand(command: String) {
+        if (isMaster) {
+            bluetoothController.sendCommand(command).collect {
+                when (it) {
+                    is CommandResult.CommandSent -> { /* Command sent */ }
+                    is CommandResult.Error -> { /* Show error */ }
+                    else -> { /* Handle other results */ }
+                }
+            }
+        }
+    }
+
 
     // Holds the UI state of the Bluetooth screen.
     private val _state = MutableStateFlow(BluetoothUiState())

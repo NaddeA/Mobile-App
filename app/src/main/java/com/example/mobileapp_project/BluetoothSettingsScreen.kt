@@ -1,7 +1,7 @@
 package com.example.mobileapp_project
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.* // För layoutkomponenter
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -9,12 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mobileapp_project.R
-
 
 @Composable
 fun BluetoothSettingsScreen(
@@ -30,17 +27,17 @@ fun BluetoothSettingsScreen(
         horizontalAlignment = Alignment.Start
     ) {
         BluetoothOptionCard(
-            text = stringResource(id = R.string.enable_bluetooth_text),
+            text = "Enable Bluetooth",  // Replace stringResource with a direct string
             onClick = onEnableBluetooth
         )
         Spacer(modifier = Modifier.height(16.dp))
         BluetoothOptionCard(
-            text = stringResource(id = R.string.master_mode_text),
+            text = "Activate Master Mode",  // Replace stringResource with a direct string
             onClick = onMasterMode
         )
         Spacer(modifier = Modifier.height(16.dp))
         BluetoothOptionCard(
-            text = stringResource(id = R.string.slave_mode_text),
+            text = "Activate Slave Mode",  // Replace stringResource with a direct string
             onClick = onSlaveMode
         )
     }
@@ -52,7 +49,7 @@ fun BluetoothOptionCard(text: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { onClick() }, // Lägg till klickfunktion här istället för onClick direkt på Card
+            .clickable { onClick() },
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Box(
@@ -69,4 +66,3 @@ fun BluetoothOptionCard(text: String, onClick: () -> Unit) {
         }
     }
 }
-

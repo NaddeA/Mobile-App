@@ -1,381 +1,142 @@
 package com.example.mobileapp_project
 
-import android.Manifest
+import BluetoothSettingsComposable
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.hardware.Sensor
-import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
-<<<<<<< HEAD
-<<<<<<< HEAD
-import android.widget.Button
-import android.widget.TextView
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-=======
-import android.widget.Toast
-import androidx.activity.ComponentActivity
-=======
-import android.widget.Toast
-import androidx.activity.ComponentActivity
->>>>>>> f5140904199dac7f28a4d6d0b5a0c33dd845c1ae
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.example.mobileapp_project.ui.MainScreen
 import com.example.mobileapp_project.ui.theme.MobileAppProjectTheme
-<<<<<<< HEAD
->>>>>>> 68186fc618ed8bab6bdcc6ebbe18c118fdf5ee56
-=======
 import com.example.mobileappproject.R
->>>>>>> f5140904199dac7f28a4d6d0b5a0c33dd845c1ae
 
 @RequiresApi(Build.VERSION_CODES.S)
 class MainActivity : ComponentActivity() {
 
-    private val bluetoothManager by lazy {
-<<<<<<< HEAD
-<<<<<<< HEAD
-        applicationContext.getSystemService(BluetoothManager::class.java)
-=======
-        getSystemService(BluetoothManager::class.java)
->>>>>>> 68186fc618ed8bab6bdcc6ebbe18c118fdf5ee56
-=======
-        getSystemService(BluetoothManager::class.java)
->>>>>>> f5140904199dac7f28a4d6d0b5a0c33dd845c1ae
-    }
-    private val bluetoothAdapter by lazy {
+    // Rename the property to avoid naming conflict
+    private val btAdapter by lazy {
+        val bluetoothManager = getSystemService(BluetoothManager::class.java)
         bluetoothManager?.adapter
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-    private val isBluetoothEnabled: Boolean
-        get() = bluetoothAdapter?.isEnabled == true
-
+    private val bluetoothHelper by lazy { BluetoothHelper(this, btAdapter) }
+    private val sensorDetailManager by lazy { SensorDetailManager(this) }
     private lateinit var sensorManager: SensorManager
-    private lateinit var sensorDataTextView: TextView
-    private lateinit var sensorInfoTextView: TextView
+    private lateinit var logDataService: LogDataService
 
     private val enableBluetoothLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { /* Not needed */ }
 
-    // Removed permissionLauncher as it was unused
-
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        // Bluetooth settings button
-        val bluetoothSettingsButton = findViewById<Button>(R.id.bluetoothSettingsButton)
-        bluetoothSettingsButton.setOnClickListener {
-            toggleBluetooth()
-        }
-
-        // Get the SensorManager
+        // Initialize sensor manager and log data service
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        logDataService = LogDataService(this)
 
-        // Display Sensors in RecyclerView
-        displaySensors()
+        // Set content view for the activity using Jetpack Compose
+        setContent {
+            MobileAppProjectTheme {
+                var showBluetoothSettings by remember { mutableStateOf(false) }
+                val sensorList by remember { mutableStateOf(getSensorList()) }
 
-        // Setting up sensor details text view
-        sensorDataTextView = findViewById(R.id.sensorDataTextView)
-        sensorInfoTextView = findViewById(R.id.sensorInfoTextView)
+                // Show either the Bluetooth settings or the main screen
+                if (showBluetoothSettings) {
+                    BluetoothSettingsComposable(
+                        isBluetoothEnabled = bluetoothHelper.isBluetoothOn(),
+                        onEnableBluetoothClick = {
+                            if (!bluetoothHelper.enableBluetooth()) {
+                                requestEnableBluetooth()
+                            }
+                        },
+                        onActivateMasterModeClick = {
+                            Toast.makeText(this, "Master Mode Activated", Toast.LENGTH_SHORT).show()
+                        },
+                        onActivateSlaveModeClick = {
+                            Toast.makeText(this, "Slave Mode Activated", Toast.LENGTH_SHORT).show()
+                        },
+                        onBackClick = {
+                            showBluetoothSettings = false
+                        }
+                    )
+                } else {
+                    MainScreen(
+                        isBluetoothEnabled = bluetoothHelper.isBluetoothOn(),
+                        onEnableBluetoothClick = {
+                            if (!bluetoothHelper.enableBluetooth()) {
+                                requestEnableBluetooth()
+                            }
+                        },
+                        onActivateMasterModeClick = {
+                            Toast.makeText(this, "Master Mode Activated", Toast.LENGTH_SHORT).show()
+                        },
+                        onActivateSlaveModeClick = {
+                            Toast.makeText(this, "Slave Mode Activated", Toast.LENGTH_SHORT).show()
+                        },
+                        sensorList = sensorList,
+                        onSensorItemClick = { sensorItem ->
+                            sensorDetailManager.registerSensor(sensorItem.sensorType) { sensorData ->
+                                Toast.makeText(this, "Sensor Data from ${sensorItem.title}: $sensorData", Toast.LENGTH_SHORT).show()
+                                logDataService.logSensorData(sensorItem.title, sensorData)
+                            }
+                        }
+                    )
+                }
+            }
+        }
     }
 
-    private fun toggleBluetooth() {
-        if (bluetoothAdapter == null) {
-            Toast.makeText(this, getString(R.string.bluetooth_not_supported), Toast.LENGTH_LONG).show()
-            return
-        }
-
-        if (!bluetoothAdapter!!.isEnabled) {
-            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-            enableBluetoothLauncher.launch(enableBtIntent)
-        } else {
-            Toast.makeText(this, getString(R.string.bluetooth_already_enabled), Toast.LENGTH_SHORT).show()
-        }
+    // Function to request enabling Bluetooth
+    private fun requestEnableBluetooth() {
+        val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+        enableBluetoothLauncher.launch(enableIntent)
     }
 
-    private fun displaySensors() {
-        val sensorList = sensorManager.getSensorList(Sensor.TYPE_ALL)
-        if (sensorList.isNullOrEmpty()) {
-            Toast.makeText(this, getString(R.string.no_sensors_available), Toast.LENGTH_LONG).show()
-            return
-        }
-
-        val sensorsForRecyclerView = sensorList.map { deviceSensor ->
+    // Function to get the list of sensors available on the device
+    private fun getSensorList(): List<SensorItem> {
+        return sensorManager.getSensorList(Sensor.TYPE_ALL).map { deviceSensor ->
             SensorItem(
                 title = deviceSensor.name,
-                description = getString(R.string.sensor_type, deviceSensor.type),
-                icon = R.drawable.sensor,
-                type = deviceSensor.type
+                description = "Type: ${deviceSensor.type}",
+                icon = R.drawable.sensor, // Placeholder icon
+                sensorType = deviceSensor.type
             )
         }
-
-        val sensorRecyclerView = findViewById<RecyclerView>(R.id.sensorRecyclerView)
-        sensorRecyclerView.layoutManager = LinearLayoutManager(this)
-        sensorRecyclerView.adapter = SensorAdapter(sensorsForRecyclerView) { sensorItem ->
-            showSensorDetails(sensorItem)
-        }
     }
-
-    private fun showSensorDetails(sensorItem: SensorItem) {
-        val sensor = sensorManager.getDefaultSensor(sensorItem.type)
-
-        sensor?.let {
-            val info = """
-                ${getString(R.string.sensor_name)}: ${it.name}
-                ${getString(R.string.sensor_type)}: ${it.type}
-                ${getString(R.string.sensor_maximum_range)}: ${it.maximumRange}
-                ${getString(R.string.sensor_resolution)}: ${it.resolution}
-                ${getString(R.string.sensor_power_consumption)}: ${it.power} mA
-                ${getString(R.string.sensor_update_frequency)}: ${it.minDelay} µs
-            """.trimIndent()
-            sensorInfoTextView.text = info
-
-            // Register a listener to display sensor data
-            val sensorEventListener = object : SensorEventListener {
-                override fun onSensorChanged(event: android.hardware.SensorEvent) {
-                    val values = event.values.joinToString(", ")
-                    sensorDataTextView.text = getString(R.string.sensor_values, values)
-                }
-
-                override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
-            }
-
-            // Register listener during activity lifecycle
-            sensorManager.registerListener(sensorEventListener, sensor, SensorManager.SENSOR_DELAY_UI)
-
-            // Unregister listener appropriately in onPause and onResume
-            this.sensorEventListener = sensorEventListener
-        } ?: run {
-            sensorInfoTextView.text = getString(R.string.no_sensor_information)
-        }
-    }
-
-    private var sensorEventListener: SensorEventListener? = null
 
     override fun onPause() {
         super.onPause()
-        sensorEventListener?.let {
-            sensorManager.unregisterListener(it)
-        }
+        sensorDetailManager.unregisterSensor()
     }
 
-    override fun onResume() {
-        super.onResume()
-        sensorEventListener?.let {
-            val sensor = sensorManager.getDefaultSensor(it.hashCode()) // Should be set to a specific sensor type if needed
-            if (sensor != null) {
-                sensorManager.registerListener(it, sensor, SensorManager.SENSOR_DELAY_UI)
-            }
-        }
-    }
-}
-=======
-
-    private val isBluetoothEnabled: Boolean
-        get() = bluetoothAdapter?.isEnabled == true
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // SensorManager instansieras här och skickas till MainScreen
-        val sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        val sensorList = listOf(
-            SensorItem(
-                title = "Accelerometer",
-                description = "Type: 1",
-                icon = R.drawable.sensor, // Sätt din standardikon här
-                sensorType = Sensor.TYPE_ACCELEROMETER
-            ),
-            SensorItem(
-                title = "Gyroscope",
-                description = "Type: 4",
-                icon = R.drawable.sensor, // Sätt din standardikon här
-                sensorType = Sensor.TYPE_GYROSCOPE
-            ),
-
-        )
-
-        setContent {
-            MobileAppProjectTheme {
-                MainScreen(
-                    sensorManager = sensorManager,
-                    isBluetoothEnabled = isBluetoothEnabled,
-                    onEnableBluetooth = { enableBluetooth() },
-                    onSensorClick = { sensorItem ->
-                        val intent = Intent(this, SensorDetailActivity::class.java).apply {
-                            putExtra("sensor_name", sensorItem.title)
-                            putExtra("sensor_type", sensorItem.sensorType)
-                        }
-                        startActivity(intent)
-                    },
-                    onBluetoothSettingsClick = {
-                        startActivity(Intent(this, BluetoothSettingsActivity::class.java))
-                    }
-                )
-            }
-        }
-    }
-
-    private fun enableBluetooth() {
-        val enableBluetoothLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            // Här kan du hantera resultatet om det behövs
-        }
-
-        val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            val canEnableBluetooth = permissions[Manifest.permission.BLUETOOTH_CONNECT] == true || Build.VERSION.SDK_INT < Build.VERSION_CODES.S
-            if (canEnableBluetooth && !isBluetoothEnabled) {
-                enableBluetoothLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            permissionLauncher.launch(arrayOf(Manifest.permission.BLUETOOTH_CONNECT))
-        } else if (!isBluetoothEnabled) {
-            enableBluetoothLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-        }
-    }
-}
-=======
-
-    private val isBluetoothEnabled: Boolean
-        get() = bluetoothAdapter?.isEnabled == true
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // SensorManager instansieras här och skickas till MainScreen
-        val sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        val sensorList = listOf(
-            SensorItem(
-                title = "Accelerometer",
-                description = "Type: 1",
-                icon = R.drawable.sensor, // Sätt din standardikon här
-                sensorType = Sensor.TYPE_ACCELEROMETER
-            ),
-            SensorItem(
-                title = "Gyroscope",
-                description = "Type: 4",
-                icon = R.drawable.sensor, // Sätt din standardikon här
-                sensorType = Sensor.TYPE_GYROSCOPE
-            ),
-
-        )
-
-        setContent {
-            MobileAppProjectTheme {
-                MainScreen(
-                    sensorManager = sensorManager,
-                    isBluetoothEnabled = isBluetoothEnabled,
-                    onEnableBluetooth = { enableBluetooth() },
-                    onSensorClick = { sensorItem ->
-                        val intent = Intent(this, SensorDetailActivity::class.java).apply {
-                            putExtra("sensor_name", sensorItem.title)
-                            putExtra("sensor_type", sensorItem.sensorType)
-                        }
-                        startActivity(intent)
-                    },
-                    onBluetoothSettingsClick = {
-                        startActivity(Intent(this, BluetoothSettingsActivity::class.java))
-                    }
-                )
-            }
-        }
-    }
-
-    private fun enableBluetooth() {
-        val enableBluetoothLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            // Här kan du hantera resultatet om det behövs
-        }
-
-        val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            val canEnableBluetooth = permissions[Manifest.permission.BLUETOOTH_CONNECT] == true || Build.VERSION.SDK_INT < Build.VERSION_CODES.S
-            if (canEnableBluetooth && !isBluetoothEnabled) {
-                enableBluetoothLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            permissionLauncher.launch(arrayOf(Manifest.permission.BLUETOOTH_CONNECT))
-        } else if (!isBluetoothEnabled) {
-            enableBluetoothLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-        }
-    }
-}
->>>>>>> f5140904199dac7f28a4d6d0b5a0c33dd845c1ae
-
-// MainScreen composable
-@Composable
-fun MainScreen(
-    sensorManager: SensorManager,
-    isBluetoothEnabled: Boolean,
-    onEnableBluetooth: () -> Unit,
-    onSensorClick: (SensorItem) -> Unit,
-    onBluetoothSettingsClick: () -> Unit
-) {
-    var sensorList by remember { mutableStateOf<List<SensorItem>>(emptyList()) }
-
-    LaunchedEffect(Unit) {
-        sensorList = getSensorList(sensorManager)
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
     ) {
-        Button(
-            onClick = onBluetoothSettingsClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        ) {
-            Text("Bluetooth Settings")
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == BluetoothHelper.REQUEST_BLUETOOTH_PERMISSIONS) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, proceed with the Bluetooth operation
+            } else {
+                // Permission denied, show a message to the user
+                Log.e("MainActivity", "Bluetooth permission was denied.")
+            }
         }
-
-        Text(
-            "Available Sensors:",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        SensorList(sensorList, onSensorClick)
     }
 }
-
-// Flytta sensordatahämtningen till en separat funktion
-fun getSensorList(sensorManager: SensorManager): List<SensorItem> {
-    return sensorManager.getSensorList(Sensor.TYPE_ALL).map { deviceSensor ->
-        SensorItem(
-            title = deviceSensor.name,
-            description = "Type: ${deviceSensor.type}",icon = android.R.drawable.ic_menu_info_details
-            , // Placeholder icon
-            sensorType = deviceSensor.type
-        )
-    }
-}
-<<<<<<< HEAD
->>>>>>> 68186fc618ed8bab6bdcc6ebbe18c118fdf5ee56
-=======
->>>>>>> f5140904199dac7f28a4d6d0b5a0c33dd845c1ae
