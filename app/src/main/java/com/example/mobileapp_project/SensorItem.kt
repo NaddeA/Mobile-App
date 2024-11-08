@@ -4,5 +4,6 @@ data class SensorItem(
     val title: String,
     val description: String,
     val icon: Int,
-    val type: Int
+    val sensorType: Int
 )
+
