@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.BlueCenter.DataLoger.R
 
 class SensorAdapter(
     private val sensorList: List<SensorItem>,
