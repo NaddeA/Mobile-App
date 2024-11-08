@@ -10,7 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.BlueCenter.DataLoger.R
+import com.example.mobileappproject.R
 
 class BluetoothSettingsActivity : ComponentActivity() {
 

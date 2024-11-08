@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.BlueCenter.DataLoger"
+    namespace = "com.example.mobileappproject"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.BlueCenter.DataLoger"
+        applicationId = "com.example.mobileappproject"
         minSdk = 31
         targetSdk = 34
         versionCode = 1
