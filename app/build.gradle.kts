@@ -2,15 +2,17 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
 }
 
 android {
-    namespace = "com.example.mobileapp_project"
+    namespace = "com.BlueCenter.DataLoger"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.mobileapp_project"
-        minSdk = 30
+        applicationId = "com.BlueCenter.DataLoger"
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -36,23 +38,23 @@ android {
     }
     buildFeatures {
         compose = true
-        compose = true
-        viewBinding = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.0"
     }
 }
 
 dependencies {
-    implementation ("androidx.compose.material3:material3:1.0.0") // Replace with latest version
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.ui.tooling.preview)
+    debugImplementation(libs.compose.ui.tooling)
+    // Mockito core library for unit testing
+    testImplementation(libs.mockito.core)
 
-    implementation("androidx.compose.ui:ui:1.5.0")
-    implementation("androidx.compose.material:material:1.5.0")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.5.0")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.5.0")
+    // Optional: Mockito inline for mocking final classes and methods
+    testImplementation(libs.mockito.inline)
 
+    // Optional: Mockito Kotlin extensions for easier usage in Kotlin
+    testImplementation(libs.mockito.kotlin)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -64,6 +66,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.recyclerview)
 
+
+    implementation(libs.androidx.appcompat)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -71,9 +75,10 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.google.material)
 
-    // Additional dependencies
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.9.0")
-    implementation("androidx.activity:activity-compose:1.7.2")
+    // Hilt implementation
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+
 }

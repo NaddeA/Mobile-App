@@ -1,12 +1,16 @@
-// settings.gradle.kts
 pluginManagement {
     repositories {
-        google()
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
         mavenCentral()
-        gradlePluginPortal() // This allows Gradle to fetch the Android plugin
+        gradlePluginPortal()
     }
 }
-
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -15,5 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Mobile App-project"
+rootProject.name = "My Application"
 include(":app")
+ 
