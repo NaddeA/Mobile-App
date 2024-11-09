@@ -1,6 +1,17 @@
+<!-- res/values/strings.xml -->
 <resources>
-    <string name="app_name">Mobile App-project</string>
+    <string name="app_name">MobileAppProject</string>
     <string name="enable_bluetooth_text">Enable Bluetooth</string>
-    <string name="master_mode_text">Master Mode</string>
-    <string name="slave_mode_text">Slave Mode</string>
+    <string name="master_mode_text">Activate Master Mode</string>
+    <string name="slave_mode_text">Activate Slave Mode</string>
+    <string name="bluetooth_already_enabled">Bluetooth is already enabled</string>
+    <string name="bluetooth_not_supported">Bluetooth is not supported on this device</string>
+    <string name="no_sensors_available">No sensors are available</string>
+    <string name="sensor_name">Sensor Name</string>
+    <string name="sensor_type">Sensor Type</string>
+    <string name="sensor_maximum_range">Maximum Range</string>
+    <string name="sensor_resolution">Resolution</string>
+    <string name="sensor_power_consumption">Power Consumption</string>
+    <string name="sensor_update_frequency">Update Frequency</string>
+    <string name="sensor_values">Sensor Values</string>
 </resources>
