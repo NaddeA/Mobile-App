@@ -7,19 +7,11 @@ plugins {
 }
 
 android {
-<<<<<<< HEAD
     namespace = "com.example.mobileapp_project"
     compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.mobileapp_project"
-=======
-    namespace = "com.example.mobileappproject"
-    compileSdk = 34
-
-    defaultConfig {
-        applicationId = "com.example.mobileappproject"
->>>>>>> f5140904199dac7f28a4d6d0b5a0c33dd845c1ae
         minSdk = 31
         targetSdk = 34
         versionCode = 1
@@ -37,13 +29,16 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
     }

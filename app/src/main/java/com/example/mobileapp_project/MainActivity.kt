@@ -10,8 +10,6 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
-<<<<<<< HEAD
-<<<<<<< HEAD
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -19,15 +17,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-=======
-import android.widget.Toast
-import androidx.activity.ComponentActivity
-=======
-import android.widget.Toast
-import androidx.activity.ComponentActivity
->>>>>>> f5140904199dac7f28a4d6d0b5a0c33dd845c1ae
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -38,32 +28,25 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.mobileapp_project.ui.theme.MobileAppProjectTheme
-<<<<<<< HEAD
->>>>>>> 68186fc618ed8bab6bdcc6ebbe18c118fdf5ee56
-=======
-import com.example.mobileappproject.R
->>>>>>> f5140904199dac7f28a4d6d0b5a0c33dd845c1ae
+
+
+
 
 @RequiresApi(Build.VERSION_CODES.S)
 class MainActivity : ComponentActivity() {
 
     private val bluetoothManager by lazy {
-<<<<<<< HEAD
-<<<<<<< HEAD
+
         applicationContext.getSystemService(BluetoothManager::class.java)
-=======
+
         getSystemService(BluetoothManager::class.java)
->>>>>>> 68186fc618ed8bab6bdcc6ebbe18c118fdf5ee56
-=======
         getSystemService(BluetoothManager::class.java)
->>>>>>> f5140904199dac7f28a4d6d0b5a0c33dd845c1ae
+
     }
     private val bluetoothAdapter by lazy {
         bluetoothManager?.adapter
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 
     private val isBluetoothEnabled: Boolean
         get() = bluetoothAdapter?.isEnabled == true
@@ -190,7 +173,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-=======
+
 
     private val isBluetoothEnabled: Boolean
         get() = bluetoothAdapter?.isEnabled == true
@@ -256,8 +239,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-=======
-
     private val isBluetoothEnabled: Boolean
         get() = bluetoothAdapter?.isEnabled == true
 
@@ -322,7 +303,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
->>>>>>> f5140904199dac7f28a4d6d0b5a0c33dd845c1ae
+
 
 // MainScreen composable
 @Composable
@@ -375,7 +356,3 @@ fun getSensorList(sensorManager: SensorManager): List<SensorItem> {
         )
     }
 }
-<<<<<<< HEAD
->>>>>>> 68186fc618ed8bab6bdcc6ebbe18c118fdf5ee56
-=======
->>>>>>> f5140904199dac7f28a4d6d0b5a0c33dd845c1ae
