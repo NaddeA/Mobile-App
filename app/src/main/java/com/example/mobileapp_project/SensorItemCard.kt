@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.mobileapp_project.SensorItem
-import com.example.mobileappproject.R
+import com.example.mobileapp_project.R
 
 @Composable
 fun SensorItemCard(sensorItem: SensorItem, onItemClick: (SensorItem) -> Unit) {
