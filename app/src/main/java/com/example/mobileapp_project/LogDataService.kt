@@ -1,5 +1,7 @@
 package com.example.mobileapp_project
 
+
+// this is to log the data in a specific way
 import android.content.Context
 import java.io.File
 import java.text.SimpleDateFormat

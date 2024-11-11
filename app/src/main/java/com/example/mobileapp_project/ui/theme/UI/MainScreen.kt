@@ -1,6 +1,7 @@
-package com.example.mobileapp_project.ui
+package com.example.mobileapp_project.ui.theme.UI
 
-import android.annotation.SuppressLint
+//Composable File
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -9,8 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mobileapp_project.SensorItem
-import com.example.mobileapp_project.SensorType
-import com.example.mobileapp_project.SensorList
 
 @Composable
 fun MainScreen(

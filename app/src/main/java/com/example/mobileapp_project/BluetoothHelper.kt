@@ -11,6 +11,9 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
+
+// Old bluetooth functional class can be used now for checking bluetooth status, turning on and off, and discoverability
+
 class BluetoothHelper(private val context: Context, private val bluetoothAdapter: BluetoothAdapter?) {
 
     companion object {

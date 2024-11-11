@@ -1,5 +1,7 @@
 package com.example.mobileapp_project
 
+// planing File just made to visualize stuff
+
 class ProjectMap {
     inner class Master{
         fun toggleBluetooth(){

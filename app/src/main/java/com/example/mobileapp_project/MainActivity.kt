@@ -1,6 +1,5 @@
 package com.example.mobileapp_project
 
-import BluetoothSettingsComposable
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
@@ -10,33 +9,16 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import android.util.Log
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import com.example.mobileapp_project.ui.MainScreen
+import com.example.mobileapp_project.ui.theme.UI.MainScreen
 import com.example.mobileapp_project.ui.theme.MobileAppProjectTheme
-import com.example.mobileapp_project.R
+import com.example.mobileapp_project.ui.theme.UI.BluetoothSettingsComposable
 
 @RequiresApi(Build.VERSION_CODES.S)
 class MainActivity : ComponentActivity() {
@@ -59,9 +41,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize sensor manager and log data service
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         logDataService = LogDataService(this)
+        // Initialize sensor manager and log data service
 
         // Set content view for the activity using Jetpack Compose
         setContent {
@@ -120,7 +102,7 @@ class MainActivity : ComponentActivity() {
         val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
         enableBluetoothLauncher.launch(enableIntent)
     }
-}
+
 
 
     // Function to get the list of sensors available on the device

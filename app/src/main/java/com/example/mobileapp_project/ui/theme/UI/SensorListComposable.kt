@@ -1,6 +1,8 @@
 // SensorListComposable.kt
-package com.example.mobileapp_project
+package com.example.mobileapp_project.ui.theme.UI
 
+
+// Composable presenting the sensors as a list
 import SensorItemCard
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -15,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.mobileapp_project.SensorItem
 
 
 @Composable
@@ -26,18 +29,18 @@ fun SensorList(sensorList: List<SensorItem>, onItemClick: (SensorItem) -> Unit) 
     }
 }
 
-@Composable
-fun SensorItemCard(sensorItem: SensorItem, onItemClick: (SensorItem) -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .clickable { onItemClick(sensorItem) },
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = sensorItem.title, style = MaterialTheme.typography.titleMedium)
-            Text(text = sensorItem.description, style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
+//@Composable
+//fun SensorItemCard(sensorItem: SensorItem, onItemClick: (SensorItem) -> Unit) {
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(8.dp)
+//            .clickable { onItemClick(sensorItem) },
+//        elevation = CardDefaults.cardElevation(4.dp)
+//    ) {
+//        Column(modifier = Modifier.padding(16.dp)) {
+//            Text(text = sensorItem.title, style = MaterialTheme.typography.titleMedium)
+//            Text(text = sensorItem.description, style = MaterialTheme.typography.bodyMedium)
+//        }
+//    }
+//}

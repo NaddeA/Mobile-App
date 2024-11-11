@@ -3,7 +3,8 @@ package com.example.mobileapp_project
 import android.content.Context
 import org.json.JSONObject
 import java.io.File
-
+// Assuming this is for the alarms and logs to an extent
+// Harry should be able to explain it further
 data class ChannelConfig(val name: String, val isActive: Boolean)
 data class AlarmConfig(val threshold: Float, val alarmType: String) // Alarm types: "positive", "negative", "both"
 data class SamplingConfig(val rate: Int, val mode: String) // Modes could be "FIFO" or "newFile"

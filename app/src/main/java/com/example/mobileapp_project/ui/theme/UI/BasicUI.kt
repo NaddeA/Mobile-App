@@ -1,4 +1,4 @@
-/*package com.example.mobileapp_project
+package com.example.mobileapp_project.ui.theme.UI/*package com.example.mobileapp_project
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice

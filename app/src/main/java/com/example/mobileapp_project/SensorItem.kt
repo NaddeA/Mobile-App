@@ -1,5 +1,7 @@
 package com.example.mobileapp_project
 
+
+// Data class for sensor
 data class SensorItem(
     val title: String,
     val description: String,
