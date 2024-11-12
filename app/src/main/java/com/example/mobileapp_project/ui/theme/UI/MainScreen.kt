@@ -2,8 +2,9 @@ package com.example.mobileapp_project.ui.theme.UI
 
 //Composable File
 
+import android.app.Activity
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,7 +15,7 @@ import com.example.mobileapp_project.Sensor.SensorItem
 @Composable
 fun MainScreen(
     isBluetoothEnabled: Boolean,
-    onEnableBluetoothClick: () -> Unit,
+    onEnableBluetooth: (Activity) -> Unit,
     onActivateMasterModeClick: () -> Unit,
     onActivateSlaveModeClick: () -> Unit,
     //onSensorClick: (SensorType) -> Unit,
@@ -41,14 +42,7 @@ fun MainScreen(
                 fontSize = 20.sp,
                 color = if (isBluetoothEnabled) MaterialTheme.colors.primary else MaterialTheme.colors.error
             )
-
-            Button(
-                onClick = onEnableBluetoothClick,
-                enabled = !isBluetoothEnabled,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Enable Bluetooth")
-            }
+            BluetoothEnableButton({activity -> onEnableBluetooth(activity)},isBluetoothEnabled)
 
             Button(
                 onClick = onActivateMasterModeClick,

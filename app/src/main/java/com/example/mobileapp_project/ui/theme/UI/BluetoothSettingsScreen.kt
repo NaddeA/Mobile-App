@@ -2,14 +2,17 @@ package com.example.mobileapp_project.ui.theme.UI
 
 // Composable class
 
+import android.app.Activity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,5 +68,20 @@ fun BluetoothOptionCard(text: String, onClick: () -> Unit) {
                 fontWeight = FontWeight.Bold
             )
         }
+    }
+}
+
+@Composable
+fun BluetoothEnableButton(onBluetoothEnable : (Activity) -> Unit,isBluetoothEnabled:Boolean){
+    val context = LocalContext.current as? Activity
+    Button(
+        onClick = {context?.let {
+            onBluetoothEnable(it)
+        }
+        },
+        enabled = !isBluetoothEnabled,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        androidx.compose.material.Text("Enable Bluetooth")
     }
 }

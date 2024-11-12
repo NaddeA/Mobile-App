@@ -60,10 +60,8 @@ class MainActivity : ComponentActivity() {
                 if (showBluetoothSettings) {
                     BluetoothSettingsComposable(
                         isBluetoothEnabled = bluetoothHelper.isBluetoothOn(),
-                        onEnableBluetoothClick = {
-                            if (!bluetoothHelper.enableBluetooth(this@MainActivity)) {
-                                requestEnableBluetooth()
-                            }
+                        onEnableBluetoothClick = {activity ->
+                            bluetoothHelper.enableBluetooth(activity)
                         },
                         onActivateMasterModeClick = {
                             Toast.makeText(this, "Master Mode Activated", Toast.LENGTH_SHORT).show()
@@ -78,10 +76,8 @@ class MainActivity : ComponentActivity() {
                 } else {
                     MainScreen(
                         isBluetoothEnabled = bluetoothHelper.isBluetoothOn(),
-                        onEnableBluetoothClick = {
-                            if (!bluetoothHelper.enableBluetooth(this@MainActivity)) {
-                                requestEnableBluetooth()
-                            }
+                        onEnableBluetooth = {activity ->
+                            bluetoothHelper.enableBluetooth(activity)
                         },
                         onActivateMasterModeClick = {
                             Toast.makeText(this, "Master Mode Activated", Toast.LENGTH_SHORT).show()
