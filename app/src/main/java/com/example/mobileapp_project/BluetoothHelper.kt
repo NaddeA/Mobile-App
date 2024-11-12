@@ -6,30 +6,34 @@ import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.startActivityForResult
 import androidx.core.content.ContextCompat
 
 
 // Old bluetooth functional class can be used now for checking bluetooth status, turning on and off, and discoverability
-
+@SuppressLint("MissingPermission")
 class BluetoothHelper(private val context: Context, private val bluetoothAdapter: BluetoothAdapter?) {
+    private lateinit var enableBluetoothLauncher: ActivityResultLauncher<Intent>
 
     companion object {
         const val REQUEST_BLUETOOTH_PERMISSIONS = 1001
+        const val REQUEST_ENABLE_BT = 1002
+
         private const val TAG = "BluetoothHelper"
     }
 
     fun isBluetoothOn(): Boolean = bluetoothAdapter?.isEnabled == true
 
-    fun enableBluetooth(): Boolean = bluetoothAdapter?.isEnabled == true
-
     fun hasBluetoothScanPermission(): Boolean = hasPermission(Manifest.permission.BLUETOOTH_SCAN)
 
     fun hasBluetoothConnectPermission(): Boolean = hasPermission(Manifest.permission.BLUETOOTH_CONNECT)
 
-    @SuppressLint("MissingPermission")
+
     fun discoverDevices(activity: Activity, onDeviceFound: (BluetoothDevice) -> Unit) {
         if (!hasBluetoothScanPermission()) {
             requestPermission(activity, Manifest.permission.BLUETOOTH_SCAN)
@@ -47,7 +51,7 @@ class BluetoothHelper(private val context: Context, private val bluetoothAdapter
         }
     }
 
-    @SuppressLint("MissingPermission")
+
     fun getPairedDevices(activity: Activity): List<BluetoothDevice> {
         if (!hasBluetoothConnectPermission()) {
             requestPermission(activity, Manifest.permission.BLUETOOTH_CONNECT)
@@ -59,6 +63,18 @@ class BluetoothHelper(private val context: Context, private val bluetoothAdapter
                 Log.i(TAG, "No paired devices found.")
             }
         }
+    }
+
+    // make this actually turn the bluetooth on
+
+    fun enableBluetooth(activity: Activity): Boolean {
+        if (isBluetoothOn()) return true
+
+        val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+        activity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+
+        return false
+
     }
 
     private fun requestPermission(activity: Activity, permission: String) {
@@ -74,4 +90,6 @@ class BluetoothHelper(private val context: Context, private val bluetoothAdapter
 
     private fun hasPermission(permission: String): Boolean =
         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+
+
 }

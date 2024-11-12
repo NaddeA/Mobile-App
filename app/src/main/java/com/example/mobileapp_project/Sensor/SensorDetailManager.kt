@@ -1,4 +1,4 @@
-package com.example.mobileapp_project
+package com.example.mobileapp_project.Sensor
 
 
 //This is being called or initiated in main as sensorManager
@@ -7,6 +7,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import com.example.mobileapp_project.LogDataService
 
 class SensorDetailManager(private val context: Context) {
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager

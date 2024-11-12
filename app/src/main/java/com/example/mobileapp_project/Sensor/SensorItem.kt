@@ -1,4 +1,4 @@
-package com.example.mobileapp_project
+package com.example.mobileapp_project.Sensor
 
 
 // Data class for sensor

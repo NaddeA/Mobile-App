@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.mobileapp_project.SensorItem
+import com.example.mobileapp_project.Sensor.SensorItem
 import com.example.mobileapp_project.R
 
 // Composable to present sensors

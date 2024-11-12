@@ -16,6 +16,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
+import com.example.mobileapp_project.Sensor.SensorDetailManager
+import com.example.mobileapp_project.Sensor.SensorItem
 import com.example.mobileapp_project.ui.theme.UI.MainScreen
 import com.example.mobileapp_project.ui.theme.MobileAppProjectTheme
 import com.example.mobileapp_project.ui.theme.UI.BluetoothSettingsComposable
@@ -28,7 +30,10 @@ class MainActivity : ComponentActivity() {
         val bluetoothManager = getSystemService(BluetoothManager::class.java)
         bluetoothManager?.adapter
     }
+
     private val bluetoothHelper by lazy { BluetoothHelper(this, btAdapter) }
+
+    // Keep in mind for Bluetooth The Data transfer service class takes a socket when initialized and sends/listens to sent messages
     private val sensorDetailManager by lazy { SensorDetailManager(this) }
     private lateinit var sensorManager: SensorManager
     private lateinit var logDataService: LogDataService
@@ -56,7 +61,7 @@ class MainActivity : ComponentActivity() {
                     BluetoothSettingsComposable(
                         isBluetoothEnabled = bluetoothHelper.isBluetoothOn(),
                         onEnableBluetoothClick = {
-                            if (!bluetoothHelper.enableBluetooth()) {
+                            if (!bluetoothHelper.enableBluetooth(this@MainActivity)) {
                                 requestEnableBluetooth()
                             }
                         },
@@ -74,7 +79,7 @@ class MainActivity : ComponentActivity() {
                     MainScreen(
                         isBluetoothEnabled = bluetoothHelper.isBluetoothOn(),
                         onEnableBluetoothClick = {
-                            if (!bluetoothHelper.enableBluetooth()) {
+                            if (!bluetoothHelper.enableBluetooth(this@MainActivity)) {
                                 requestEnableBluetooth()
                             }
                         },
