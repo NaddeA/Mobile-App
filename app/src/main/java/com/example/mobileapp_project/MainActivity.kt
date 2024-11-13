@@ -15,7 +15,14 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import com.example.mobileapp_project.Sensor.SensorDetailManager
 import com.example.mobileapp_project.Sensor.SensorItem
 import com.example.mobileapp_project.ui.theme.UI.*
@@ -133,14 +140,34 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     is Screen.Master -> {
-                        BluetoothDeviceScreen(
-                            state = state,
-                            onStartScan = viewModel::startScan,
-                            onStopScan = viewModel::stopScan,
-                            onDeviceClick = viewModel::connectToDevice,
-                            onStartServer = viewModel::waitForIncomingConnections
-
-                        )
+                        when {
+                            state.isConnecting -> {
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                    Text(text = "Connecting...")
+                                }
+                            }
+                            state.isConnected -> {
+                                ChatScreen(
+                                    state = state,
+                                    onDisconnect = viewModel::disconnectFromDevice,
+                                    onSendMessage = viewModel::sendMessage
+                                )
+                            }
+                            else -> {
+                                BluetoothDeviceScreen(
+                                    state = state,
+                                    onStartScan = viewModel::startScan,
+                                    onStopScan = viewModel::stopScan,
+                                    onDeviceClick = viewModel::connectToDevice,
+                                    onStartServer = viewModel::waitForIncomingConnections
+                                )
+                            }
+                        }
                     }
                     is Screen.Slave -> {
 

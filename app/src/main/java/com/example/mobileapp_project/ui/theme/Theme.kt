@@ -37,3 +37,21 @@ fun MobileAppProjectTheme(
         content = content
     )
 }
+@Composable
+fun BluetoothChatTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val colors = if (darkTheme) {
+        DarkColorScheme
+    } else {
+        LightColorScheme
+    }
+
+    androidx.compose.material3.MaterialTheme(
+        colorScheme = colors,
+        typography = Typography,
+        shapes = Shapes,
+        content = content
+    )
+}

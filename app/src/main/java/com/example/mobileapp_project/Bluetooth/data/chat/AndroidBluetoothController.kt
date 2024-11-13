@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.util.Log
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothController
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothDeviceDomain
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothMessage
@@ -176,20 +177,34 @@ class AndroidBluetoothController(
 
             currentClientSocket?.let { socket ->
                 try {
+                    Log.d("BluetoothConnection", "Attempting to connect to the device...")
                     socket.connect()
+                    Log.d("BluetoothConnection", "Connection established successfully.")
                     emit(ConnectionResult.ConnectionEstablished)
 
                     BluetoothDataTransferService(socket).also {
                         dataTransferService = it
-                        // Listen for incoming messages
-                        emitAll(it.listenForIncomingMessages().map { ConnectionResult.TransferSucceeded(it) })
+                        // Listen for incoming messages and emit the results
+                        emitAll(
+                            it.listenForIncomingMessages().map { message ->
+                                Log.d("BluetoothConnection", "Received message: ${message.message}")
+                                ConnectionResult.TransferSucceeded(message)
+                            }
+                        )
                     }
                 } catch (e: IOException) {
-                    socket.close()
+                    Log.e("BluetoothConnection", "Connection failed: ${e.message}", e)
+                    try {
+                        socket.close()
+                        Log.d("BluetoothConnection", "Socket closed after failed connection.")
+                    } catch (closeException: IOException) {
+                        Log.e("BluetoothConnection", "Failed to close socket properly: ${closeException.message}", closeException)
+                    }
                     currentClientSocket = null
-                    emit(ConnectionResult.Error("Connection was interrupted"))
+                    emit(ConnectionResult.Error("Connection was interrupted: ${e.message}"))
                 }
             }
+
         }.onCompletion {
             closeConnection()
         }.flowOn(Dispatchers.IO)
@@ -257,6 +272,6 @@ class AndroidBluetoothController(
     }
 
     companion object {
-        const val SERVICE_UUID = "eb7a402d-e107-46a7-b4bb-15b0294ba39c"
+        const val SERVICE_UUID = "00001101-0000-1000-8000-00805F9B34FB"
     }
 }
