@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mobileapp_project.Sensor.SensorItem
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     isBluetoothEnabled: Boolean,
@@ -40,7 +41,7 @@ fun MainScreen(
             Text(
                 text = if (isBluetoothEnabled) "Bluetooth is Enabled" else "Bluetooth is Disabled",
                 fontSize = 20.sp,
-                color = if (isBluetoothEnabled) MaterialTheme.colors.primary else MaterialTheme.colors.error
+                color = if (isBluetoothEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
             )
             BluetoothEnableButton({activity -> onEnableBluetooth(activity)},isBluetoothEnabled)
 
@@ -60,13 +61,13 @@ fun MainScreen(
 
             // Section for general sensor control buttons (like temperature or humidity)
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Sensor Controls", style = MaterialTheme.typography.h6)
+            Text(text = "Sensor Controls", style = MaterialTheme.typography.headlineMedium)
 
 
 
             // Sensor List section - use the SensorList composable
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Available Sensors", style = MaterialTheme.typography.h6)
+            Text(text = "Available Sensors", style = MaterialTheme.typography.headlineMedium)
 
             SensorList(
                 sensorList = sensorList,
