@@ -72,12 +72,14 @@ fun BluetoothOptionCard(text: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun BluetoothEnableButton(onBluetoothEnable : (Activity) -> Unit,isBluetoothEnabled:Boolean){
+fun BluetoothEnableButton(
+    onBluetoothEnable: () -> Unit,
+    isBluetoothEnabled: Boolean
+) {
     val context = LocalContext.current as? Activity
     Button(
-        onClick = {context?.let {
-            onBluetoothEnable(it)
-        }
+        onClick = {
+                onBluetoothEnable()
         },
         enabled = !isBluetoothEnabled,
         modifier = Modifier.fillMaxWidth()

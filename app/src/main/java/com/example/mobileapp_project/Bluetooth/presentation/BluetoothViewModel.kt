@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mobileapp_project.Bluetooth.presentation.BluetoothUiState
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothController
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothDeviceDomain
 import com.example.mobileapp_project.Bluetooth.domain.chat.CommandResult
@@ -15,7 +14,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.text.Typography.dagger
 
 @HiltViewModel
 class BluetoothViewModel @Inject constructor(

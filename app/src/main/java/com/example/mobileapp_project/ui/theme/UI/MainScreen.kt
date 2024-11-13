@@ -16,7 +16,7 @@ import com.example.mobileapp_project.Sensor.SensorItem
 @Composable
 fun MainScreen(
     isBluetoothEnabled: Boolean,
-    onEnableBluetooth: (Activity) -> Unit,
+    onEnableBluetooth: () -> Unit,
     onActivateMasterModeClick: () -> Unit,
     onActivateSlaveModeClick: () -> Unit,
     //onSensorClick: (SensorType) -> Unit,
@@ -43,7 +43,8 @@ fun MainScreen(
                 fontSize = 20.sp,
                 color = if (isBluetoothEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
             )
-            BluetoothEnableButton({activity -> onEnableBluetooth(activity)},isBluetoothEnabled)
+
+            BluetoothEnableButton({onEnableBluetooth()},isBluetoothEnabled)
 
             Button(
                 onClick = onActivateMasterModeClick,

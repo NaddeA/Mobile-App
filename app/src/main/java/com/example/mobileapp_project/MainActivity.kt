@@ -1,5 +1,6 @@
 package com.example.mobileapp_project
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
@@ -14,15 +15,17 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
 import com.example.mobileapp_project.Sensor.SensorDetailManager
 import com.example.mobileapp_project.Sensor.SensorItem
-import com.example.mobileapp_project.ui.theme.UI.MainScreen
+import com.example.mobileapp_project.ui.theme.UI.*
 import com.example.mobileapp_project.ui.theme.MobileAppProjectTheme
 import com.example.mobileapp_project.ui.theme.UI.BluetoothSettingsComposable
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.mobileapp_project.Bluetooth.presentation.BluetoothViewModel
 
-@RequiresApi(Build.VERSION_CODES.S)
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     // Rename the property to avoid naming conflict
@@ -31,7 +34,7 @@ class MainActivity : ComponentActivity() {
         bluetoothManager?.adapter
     }
 
-    private val bluetoothHelper by lazy { BluetoothHelper(this, btAdapter) }
+    private val btHelper by lazy { BluetoothHelper(this, btAdapter) }
 
     // Keep in mind for Bluetooth The Data transfer service class takes a socket when initialized and sends/listens to sent messages
     private val sensorDetailManager by lazy { SensorDetailManager(this) }
@@ -41,58 +44,110 @@ class MainActivity : ComponentActivity() {
     private val enableBluetoothLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { /* Not needed */ }
+    private var isBluetoothEnabled by mutableStateOf(false)
 
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        // Initialize sensor manager and log data service
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         logDataService = LogDataService(this)
-        // Initialize sensor manager and log data service
+
+
+
+        val permissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { perms ->
+            val canEnableBluetooth = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                perms[Manifest.permission.BLUETOOTH_CONNECT] == true
+            } else true
+
+
+        }
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            )
+        }
+        isBluetoothEnabled = btHelper.isBluetoothOn()
+
 
         // Set content view for the activity using Jetpack Compose
         setContent {
             MobileAppProjectTheme {
                 var showBluetoothSettings by remember { mutableStateOf(false) }
-                val sensorList by remember { mutableStateOf(getSensorList()) }
+                val sensorList by remember { mutableStateOf(getSensorList()) } //this should be in the view model seperated or joined with bluetooth
 
-                // Show either the Bluetooth settings or the main screen
-                if (showBluetoothSettings) {
-                    BluetoothSettingsComposable(
-                        isBluetoothEnabled = bluetoothHelper.isBluetoothOn(),
-                        onEnableBluetoothClick = {activity ->
-                            bluetoothHelper.enableBluetooth(activity)
-                        },
-                        onActivateMasterModeClick = {
-                            Toast.makeText(this, "Master Mode Activated", Toast.LENGTH_SHORT).show()
-                        },
-                        onActivateSlaveModeClick = {
-                            Toast.makeText(this, "Slave Mode Activated", Toast.LENGTH_SHORT).show()
-                        },
-                        onBackClick = {
-                            showBluetoothSettings = false
+
+                val viewModel = hiltViewModel<BluetoothViewModel>()
+                var currentScreen by remember { mutableStateOf<Screen>(Screen.Main) }
+                val state by viewModel.state.collectAsState()
+
+
+                when(currentScreen){
+                    is Screen.Main ->{
+                        // Show either the Bluetooth settings or the main screen
+                        if (showBluetoothSettings) {
+                            BluetoothSettingsComposable(
+                                isBluetoothEnabled = isBluetoothEnabled,
+                                onEnableBluetoothClick = {
+                                    requestEnableBluetooth()
+                                },
+                                onActivateMasterModeClick = {
+                                    Toast.makeText(this, "Master Mode Activated", Toast.LENGTH_SHORT).show()
+
+                                },
+                                onActivateSlaveModeClick = {
+                                    Toast.makeText(this, "Slave Mode Activated", Toast.LENGTH_SHORT).show()
+                                },
+                                onBackClick = {
+                                    showBluetoothSettings = false
+                                }
+                            )
+                        } else {
+                            MainScreen(
+                                isBluetoothEnabled = isBluetoothEnabled,
+                                onEnableBluetooth = {
+                                    requestEnableBluetooth()
+                                },
+                                onActivateMasterModeClick = {
+                                    Toast.makeText(this, "Master Mode Activated", Toast.LENGTH_SHORT).show()
+                                    currentScreen = Screen.Master
+                                },
+                                onActivateSlaveModeClick = {
+                                    Toast.makeText(this, "Slave Mode Activated", Toast.LENGTH_SHORT).show()
+                                },
+                                sensorList = sensorList,
+                                onSensorItemClick = { sensorItem ->
+                                    sensorDetailManager.registerSensor(sensorItem.sensorType) { sensorData ->
+                                        Toast.makeText(this, "Sensor Data from ${sensorItem.title}: $sensorData", Toast.LENGTH_SHORT).show()
+                                        logDataService.logSensorData(sensorItem.title, sensorData)
+                                    }
+                                }
+                            )
                         }
-                    )
-                } else {
-                    MainScreen(
-                        isBluetoothEnabled = bluetoothHelper.isBluetoothOn(),
-                        onEnableBluetooth = {activity ->
-                            bluetoothHelper.enableBluetooth(activity)
-                        },
-                        onActivateMasterModeClick = {
-                            Toast.makeText(this, "Master Mode Activated", Toast.LENGTH_SHORT).show()
-                        },
-                        onActivateSlaveModeClick = {
-                            Toast.makeText(this, "Slave Mode Activated", Toast.LENGTH_SHORT).show()
-                        },
-                        sensorList = sensorList,
-                        onSensorItemClick = { sensorItem ->
-                            sensorDetailManager.registerSensor(sensorItem.sensorType) { sensorData ->
-                                Toast.makeText(this, "Sensor Data from ${sensorItem.title}: $sensorData", Toast.LENGTH_SHORT).show()
-                                logDataService.logSensorData(sensorItem.title, sensorData)
-                            }
-                        }
-                    )
+                    }
+                    is Screen.Master -> {
+                        BluetoothDeviceScreen(
+                            state = state,
+                            onStartScan = viewModel::startScan,
+                            onStopScan = viewModel::stopScan,
+                            onDeviceClick = viewModel::connectToDevice,
+                            onStartServer = viewModel::waitForIncomingConnections
+
+                        )
+                    }
+                    is Screen.Slave -> {
+
+                    }
+                    is Screen.Logs -> {
+
+                    }
                 }
             }
         }
@@ -102,6 +157,8 @@ class MainActivity : ComponentActivity() {
     private fun requestEnableBluetooth() {
         val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
         enableBluetoothLauncher.launch(enableIntent)
+        isBluetoothEnabled = btHelper.isBluetoothOn()
+        return
     }
 
 

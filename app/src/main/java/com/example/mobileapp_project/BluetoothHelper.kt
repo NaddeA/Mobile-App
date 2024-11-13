@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 class BluetoothHelper(private val context: Context, private val bluetoothAdapter: BluetoothAdapter?) {
     private lateinit var enableBluetoothLauncher: ActivityResultLauncher<Intent>
 
+
     companion object {
         const val REQUEST_BLUETOOTH_PERMISSIONS = 1001
         const val REQUEST_ENABLE_BT = 1002
@@ -67,19 +68,16 @@ class BluetoothHelper(private val context: Context, private val bluetoothAdapter
 
     // make this actually turn the bluetooth on
 
-    fun enableBluetooth(activity: Activity) {
+    fun enableBluetooth() {
         if (isBluetoothOn()) return
         if (!isPermissionGranted()) {
             requestPermissions()
             return
         }
-        bluetoothAdapter?.let { adapter ->
-            if (!adapter.isEnabled) {
-                val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                context.startActivity(enableIntent)
-            } else {
-                return}
-        }
+        enableBluetoothLauncher.launch(
+            Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+        )
+
 
 
     }
@@ -117,7 +115,7 @@ class BluetoothHelper(private val context: Context, private val bluetoothAdapter
         }
     }
     // Helper to check Bluetooth permissions
-    private fun isPermissionGranted(): Boolean {
+    fun isPermissionGranted(): Boolean {
         val requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             arrayOf(
                 Manifest.permission.BLUETOOTH_SCAN,

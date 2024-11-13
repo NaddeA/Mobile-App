@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun BluetoothSettingsComposable(
     isBluetoothEnabled: Boolean,
-    onEnableBluetoothClick: (Activity) -> Unit,
+    onEnableBluetoothClick: () -> Unit,
     onActivateMasterModeClick: () -> Unit,
     onActivateSlaveModeClick: () -> Unit,
     onBackClick: () -> Unit
@@ -32,7 +32,7 @@ fun BluetoothSettingsComposable(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
-        BluetoothEnableButton({activity -> onEnableBluetoothClick(activity)},isBluetoothEnabled)
+        BluetoothEnableButton({onEnableBluetoothClick()},isBluetoothEnabled)
         Spacer(modifier = Modifier.height(16.dp))
         BluetoothOptionCard(
             text = "Activate Master Mode",
