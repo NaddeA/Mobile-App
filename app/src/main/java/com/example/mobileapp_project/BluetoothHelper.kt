@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.app.ActivityCompat
@@ -66,17 +67,20 @@ class BluetoothHelper(private val context: Context, private val bluetoothAdapter
 
     // make this actually turn the bluetooth on
 
-    fun enableBluetooth(activity: Activity): Boolean {
-        if (isBluetoothOn()) return true
-        if(!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)){
-            ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_SCAN),
-                REQUEST_ENABLE_BT)
-
+    fun enableBluetooth(activity: Activity) {
+        if (isBluetoothOn()) return
+        if (!isPermissionGranted()) {
+            requestPermissions()
+            return
         }
-        val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-        activity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
+        bluetoothAdapter?.let { adapter ->
+            if (!adapter.isEnabled) {
+                val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                context.startActivity(enableIntent)
+            } else {
+                return}
+        }
 
-        return false
 
     }
 
@@ -93,6 +97,65 @@ class BluetoothHelper(private val context: Context, private val bluetoothAdapter
 
     private fun hasPermission(permission: String): Boolean =
         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+
+    fun toggleBluetooth() {
+        if (!isPermissionGranted()) {
+            requestPermissions()
+            return
+        }
+        bluetoothAdapter?.let { adapter ->
+            if (!adapter.isEnabled) {
+                val enableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+                context.startActivity(enableIntent)
+            } else {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                    adapter.disable()
+                } else {
+                    Log.d("BluetoothHelper", "Bluetooth cannot be turned off programmatically on Android 13+.")
+                }
+            }
+        }
+    }
+    // Helper to check Bluetooth permissions
+    private fun isPermissionGranted(): Boolean {
+        val requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            arrayOf(
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        } else {
+            arrayOf(
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        }
+
+        return requiredPermissions.all {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    // Request Bluetooth permissions
+    private fun requestPermissions() {
+        if (context is Activity) {
+            val requiredPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            } else {
+                arrayOf(
+                    Manifest.permission.BLUETOOTH,
+                    Manifest.permission.BLUETOOTH_ADMIN,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            }
+            ActivityCompat.requestPermissions(context, requiredPermissions, 1)
+        }
+    }
 
 
 }
