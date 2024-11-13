@@ -3,6 +3,7 @@ package com.example.mobileapp_project.ui.theme.UI
 //Composable file made just for one function
 
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +20,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun BluetoothSettingsComposable(
     isBluetoothEnabled: Boolean,
-    onEnableBluetoothClick: () -> Unit,
+    onEnableBluetoothClick: (Activity) -> Unit,
     onActivateMasterModeClick: () -> Unit,
     onActivateSlaveModeClick: () -> Unit,
     onBackClick: () -> Unit
@@ -31,10 +32,7 @@ fun BluetoothSettingsComposable(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
-        BluetoothOptionCard(
-            text = if (isBluetoothEnabled) "Bluetooth Enabled" else "Enable Bluetooth",
-            onClick = { onEnableBluetoothClick() }
-        )
+        BluetoothEnableButton({activity -> onEnableBluetoothClick(activity)},isBluetoothEnabled)
         Spacer(modifier = Modifier.height(16.dp))
         BluetoothOptionCard(
             text = "Activate Master Mode",
