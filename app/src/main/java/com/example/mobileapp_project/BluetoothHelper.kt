@@ -69,9 +69,13 @@ class BluetoothHelper(private val context: Context, private val bluetoothAdapter
     fun enableBluetooth(activity: Activity): Boolean {
         if (isBluetoothOn()) return true
         if(!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)){
-            ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_SCAN),
+            ActivityCompat.requestPermissions(activity,
+                arrayOf(Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.BLUETOOTH_ADVERTISE),
                 REQUEST_ENABLE_BT)
-
+            return false
         }
         val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
         activity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
