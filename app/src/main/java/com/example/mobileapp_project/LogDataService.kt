@@ -23,6 +23,7 @@ class LogDataService(private val context: Context) {
     }
 
     // Read the entire log
+
     fun readLogData(): List<String> {
         if (!logFile.exists()) return emptyList()
         return logFile.readLines()

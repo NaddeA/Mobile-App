@@ -19,9 +19,6 @@ fun MainScreen(
     onEnableBluetooth: () -> Unit,
     onActivateMasterModeClick: () -> Unit,
     onActivateSlaveModeClick: () -> Unit,
-    //onSensorClick: (SensorType) -> Unit,
-    sensorList: List<SensorItem>,
-    onSensorItemClick: (SensorItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -60,20 +57,9 @@ fun MainScreen(
                 Text("Activate Slave Mode")
             }
 
-            // Section for general sensor control buttons (like temperature or humidity)
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Sensor Controls", style = MaterialTheme.typography.headlineMedium)
 
 
 
-            // Sensor List section - use the SensorList composable
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Available Sensors", style = MaterialTheme.typography.headlineMedium)
-
-            SensorList(
-                sensorList = sensorList,
-                onItemClick = onSensorItemClick
-            )
         }
     }
 }

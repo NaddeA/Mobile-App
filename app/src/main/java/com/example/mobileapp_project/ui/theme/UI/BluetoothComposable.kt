@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,8 +21,8 @@ fun BluetoothDeviceScreen(
     state: BluetoothUiState,
     onStartScan: () -> Unit,
     onStopScan: () -> Unit,
-    onStartServer: () -> Unit,
-    onDeviceClick: (BluetoothDevice) -> Unit
+    onDeviceClick: (BluetoothDevice) -> Unit,
+    onBack:()->Unit
 ) {
     Column(
         modifier = Modifier
@@ -45,9 +46,10 @@ fun BluetoothDeviceScreen(
             Button(onClick = onStopScan) {
                 Text(text = "Stop scan")
             }
-            Button(onClick = onStartServer) {
-                Text(text = "Start server")
-            }
+        }
+        HorizontalDivider(thickness = 2.dp)
+        Button(onClick = { onBack() }) {
+            Text("Back")
         }
     }
 }

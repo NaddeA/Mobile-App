@@ -13,6 +13,7 @@ fun String.toBluetoothMessage(isFromLocalUser: Boolean): BluetoothMessage {
         senderName = name,
         isFromLocalUser = isFromLocalUser
     )
+
 }
 // Converts a BluetoothMessage object into a byte array for sending over Bluetooth.
 fun BluetoothMessage.toByteArray(): ByteArray {
