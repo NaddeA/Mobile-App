@@ -211,8 +211,9 @@ class AndroidBluetoothController(
     }
     override fun receiveResponse(): Flow<String> = flow {
         dataTransferService?.let { service ->
-            service.listenForIncomingMessages().collect {
-                emit(it.message)
+            service.listenForIncomingMessages().collect {bluetoothMessage ->
+//                if()
+                emit(bluetoothMessage.message)
             }
         } ?: emit("")
     }

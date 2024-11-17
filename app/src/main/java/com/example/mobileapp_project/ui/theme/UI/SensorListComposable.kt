@@ -12,9 +12,12 @@ import com.example.mobileapp_project.Sensor.SensorItem
 
 @Composable
 fun SensorList(sensorList: List<SensorItem>, onItemClick: (SensorItem) -> Unit) {
+    var index: Int = 0
     LazyColumn {
         items(sensorList) { sensorItem ->
-            SensorItemCard(sensorItem, onItemClick)
+            index ++
+            SensorItemCard(sensorItem,index, onItemClick)
+
         }
     }
 }

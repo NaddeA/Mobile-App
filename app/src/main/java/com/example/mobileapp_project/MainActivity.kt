@@ -88,9 +88,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             MobileAppProjectTheme {
                 var showBluetoothSettings by remember { mutableStateOf(false) }
-                val sensorList by remember { mutableStateOf(getSensorList()) } //this should be in the view model separated or joined with bluetooth
+                val sensorList by remember { mutableStateOf(getSensorList()) }
 
 
+                //this should be in the view model separated or joined with bluetooth
                 val viewModel = hiltViewModel<BluetoothViewModel>()
                 var currentScreen by remember { mutableStateOf<Screen>(Screen.Main) }
                 val state by viewModel.state.collectAsState()
@@ -164,16 +165,33 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     is Screen.Slave -> {
-                        SlaveDeviceScreen( sensorList = sensorList,
-                            onSensorItemClick = { sensorItem ->
-                                sensorDetailManager.registerSensor(sensorItem.sensorType) { sensorData ->
-                                    Toast.makeText(this, "Sensor Data from ${sensorItem.title}: $sensorData", Toast.LENGTH_SHORT).show()
-                                    logDataService.logSensorData(sensorItem.title, sensorData)
-                                }
-                            },state = state,
-                            onStartServer = viewModel::waitForIncomingConnections,
-                            onBack= {currentScreen = Screen.Main}
-                        )
+                        when{
+
+                            !state.isConnected -> {
+                                SlaveDeviceScreen(sensorList = sensorList,
+                                    onSensorItemClick = { sensorItem ->
+                                        sensorDetailManager.registerSensor(sensorItem.sensorType) { sensorData ->
+                                            Toast.makeText(
+                                                this,
+                                                "Sensor Data from ${sensorItem.title}: $sensorData",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            logDataService.logSensorData(sensorItem.title, sensorData)
+                                        }
+                                    }, state = state,
+                                    onStartServer = viewModel::waitForIncomingConnections,
+                                    onBack = { currentScreen = Screen.Main }
+                                )
+                            }
+
+                            state.isConnected -> {
+                                ChatScreen(
+                                    state = state,
+                                    onDisconnect = viewModel::disconnectFromDevice,
+                                    onSendMessage = viewModel::sendMessage
+                                )
+                            }
+                        }
                     }
                     is Screen.Logs -> {
 
@@ -227,3 +245,9 @@ class MainActivity : ComponentActivity() {
     }
 
 }
+//{ sensorItem ->
+//    sensorDetailManager.registerSensor(sensorItem.sensorType) { sensorData ->
+//        Toast.makeText(this, "Sensor Data from ${sensorItem.title}: $sensorData", Toast.LENGTH_SHORT).show()
+//        logDataService.logSensorData(sensorItem.title, sensorData)
+//    }
+//

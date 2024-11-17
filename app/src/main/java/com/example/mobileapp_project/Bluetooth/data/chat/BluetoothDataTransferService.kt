@@ -20,7 +20,7 @@ class BluetoothDataTransferService(
                 return@flow // Stop if socket is not connected
             }
 
-            val buffer = ByteArray(1024) // Buffer to store incoming data
+            val buffer = ByteArray(2048) // Buffer to store incoming data
             while (true) {
                 // Try reading data from the input stream
                 val byteCount = try {
@@ -32,7 +32,7 @@ class BluetoothDataTransferService(
                 // Emit the decoded message
                 emit(
                     buffer.decodeToString(endIndex = byteCount) // Convert bytes to string
-                        .toBluetoothMessage(isFromLocalUser = false) // Create BluetoothMessage
+                        .toBluetoothMessage(isFromLocalUser = false,socket) // Create BluetoothMessage
                 )
             }
         }.flowOn(Dispatchers.IO) // Run on IO thread to avoid blocking UI

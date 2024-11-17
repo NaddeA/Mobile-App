@@ -1,5 +1,6 @@
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +20,7 @@ import com.example.mobileapp_project.R
 
 // Composable to present sensors
 @Composable
-fun SensorItemCard(sensorItem: SensorItem, onItemClick: (SensorItem) -> Unit) {
+fun SensorItemCard(sensorItem: SensorItem,index:Int, onItemClick: (SensorItem) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -41,16 +42,23 @@ fun SensorItemCard(sensorItem: SensorItem, onItemClick: (SensorItem) -> Unit) {
                     .padding(end = 8.dp)
             )
             Column {
-                Text(
-                    text = sensorItem.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
+                Row {
+                    Text(
+                        text = sensorItem.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    Text(
+                        text = " sensor No.$index"
+                    )
+                }
                 Text(
                     text = sensorItem.description,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
             }
         }
     }

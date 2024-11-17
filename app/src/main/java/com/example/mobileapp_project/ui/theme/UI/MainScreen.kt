@@ -56,10 +56,6 @@ fun MainScreen(
             ) {
                 Text("Activate Slave Mode")
             }
-
-
-
-
         }
     }
 }
