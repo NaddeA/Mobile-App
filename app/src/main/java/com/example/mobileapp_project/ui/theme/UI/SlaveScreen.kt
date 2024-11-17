@@ -32,8 +32,8 @@ fun SlaveDeviceScreen(
     Box {
 
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier,
+
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

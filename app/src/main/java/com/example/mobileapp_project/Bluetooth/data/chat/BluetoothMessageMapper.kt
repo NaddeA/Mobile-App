@@ -12,7 +12,7 @@ fun String.toBluetoothMessage(isFromLocalUser: Boolean,socket:BluetoothSocket): 
 
         // here you call to change what it does before returning the message
         return BluetoothMessage(
-            message = "Command registerd"+ message,
+            message = "Command registerd "+ message,
             senderName = name,
             isFromLocalUser = isFromLocalUser
         )
