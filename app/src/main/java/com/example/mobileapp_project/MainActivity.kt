@@ -31,6 +31,9 @@ import com.example.mobileapp_project.ui.theme.UI.BluetoothSettingsComposable
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mobileapp_project.Bluetooth.presentation.BluetoothViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -185,11 +188,38 @@ class MainActivity : ComponentActivity() {
                             }
 
                             state.isConnected -> {
-                                ChatScreen(
-                                    state = state,
-                                    onDisconnect = viewModel::disconnectFromDevice,
-                                    onSendMessage = viewModel::sendMessage
-                                )
+                                Column {
+                                    SlaveDeviceScreen(sensorList = sensorList,
+                                        onSensorItemClick = { sensorItem ->
+                                            sensorDetailManager.registerSensor(sensorItem.sensorType) { sensorData ->
+                                                val collectedData = mutableListOf<String>()
+                                                var sampleCount = 0
+                                                val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(
+                                                    Date()
+                                                )
+                                                val sensorName = sensorItem.title
+                                                val formattedData = "$timestamp - Sensor: $sensorName, Value: $sensorData"
+                                                collectedData.add(formattedData)
+
+                                                sampleCount++
+
+                                                if (sampleCount >= 10) {
+                                                    val result = collectedData.joinToString("\n")
+                                                    viewModel.sendMessage(result)
+                                                }
+
+
+                                            }
+                                        }, state = state,
+                                        onStartServer = viewModel::waitForIncomingConnections,
+                                        onBack = { currentScreen = Screen.Main }
+                                    )
+                                    ChatScreen(
+                                        state = state,
+                                        onDisconnect = viewModel::disconnectFromDevice,
+                                        onSendMessage = viewModel::sendMessage
+                                    )
+                                }
                             }
                         }
                     }
