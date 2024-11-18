@@ -7,12 +7,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothController
 import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothDeviceDomain
+import com.example.mobileapp_project.Bluetooth.domain.chat.BluetoothMessage
 import com.example.mobileapp_project.Bluetooth.domain.chat.CommandResult
 import com.example.mobileapp_project.Bluetooth.domain.chat.ConnectionResult
+import com.example.mobileapp_project.Sensor.SensorItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -111,6 +116,38 @@ class BluetoothViewModel @Inject constructor(
                 _state.update { it.copy(
                     messages = it.messages + bluetoothMessage
                 ) }
+            }
+        }
+    }
+
+
+    fun sendData(sensorItem:SensorItem,sensorData:String) {
+        viewModelScope.launch {
+            val collectedData = mutableListOf<String>()
+            var sampleCount = 0
+            val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+            val sensorName = sensorItem.title
+            val formattedData = "$timestamp - Sensor: $sensorName, Value: $sensorData"
+            collectedData.add(formattedData)
+
+            sampleCount++
+
+            // Send the data when the sample count reaches or exceeds the threshold
+            var bluetoothMessage: BluetoothMessage? = null
+            if (sampleCount >= 10) {
+                val result = collectedData.joinToString("\n")
+                bluetoothMessage = bluetoothController.trySendMessage(result)
+
+                // Check if the message was successfully sent
+                if (bluetoothMessage != null) {
+                    _state.update {
+                        it.copy(
+                            messages = it.messages + bluetoothMessage
+                        )
+                    }
+                } else {
+                    // Optionally handle if sending failed
+                }
             }
         }
     }

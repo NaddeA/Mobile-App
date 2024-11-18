@@ -195,23 +195,9 @@ class MainActivity : ComponentActivity() {
                                     SlaveDeviceScreen(sensorList = sensorList,
                                         onSensorItemClick = { sensorItem ->
                                             sensorDetailManager.registerSensor(sensorItem.sensorType) { sensorData ->
-                                                val collectedData = mutableListOf<String>()
-                                                var sampleCount = 0
-                                                val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(
-                                                    Date()
-                                                )
-                                                val sensorName = sensorItem.title
-                                                val formattedData = "$timestamp - Sensor: $sensorName, Value: $sensorData"
-                                                collectedData.add(formattedData)
-
-                                                sampleCount++
-
-                                                if (sampleCount >= 10) {
-                                                    val result = collectedData.joinToString("\n")
-                                                    viewModel.sendMessage("slave# $result")
-                                                }
-
-
+                                                viewModel.sendData(
+                                                    sensorItem= sensorItem,
+                                                    sensorData= sensorData)
                                             }
                                         }, state = state,
                                         onStartServer = viewModel::waitForIncomingConnections,
